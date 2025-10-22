@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Everything | MixerCheck</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            font-weight: 400;
+            position: relative;
+        }
+
+        /* Частицы на фоне */
+        #particles-js {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+
+        /* Левое меню - минимализм */
+        .sidebar {
+            width: 240px;
+            background: #111111;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            border-right: 1px solid #1a1a1a;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Профиль */
+        .profile-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid #1a1a1a;
+        }
+
+        .profile-main {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .profile-avatar {
+            width: 36px;
+            height: 36px;
+            background: #ff6b00;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            color: #000;
+        }
+
+        .profile-info {
+            flex: 1;
+        }
+
+        .profile-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 2px;
+        }
+
+        .profile-status {
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* Навигация */
+        .menu-navigation {
+            flex: 1;
+            padding: 0;
+        }
+
+        .menu-section {
+            padding: 16px 0;
+        }
+
+        .section-title {
+            color: #555;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 0 20px 8px 20px;
+        }
+
+        .menu-items {
+            list-style: none;
+        }
+
+        .menu-item {
+            margin: 0;
+        }
+
+        .menu-item a {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            color: #999;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 400;
+            transition: all 0.15s ease;
+        }
+
+        .menu-item a:hover {
+            color: #fff;
+            background: #1a1a1a;
+        }
+
+        .menu-item a.active {
+            color: #ff6b00;
+            background: #1a1a1a;
+            font-weight: 500;
+        }
+
+        .menu-icon {
+            width: 16px;
+            margin-right: 12px;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        /* Основной контент */
+        .main-content {
+            flex: 1;
+            margin-left: 240px;
+            padding: 24px;
+            min-height: 100vh;
+        }
+
+        /* Панели контента */
+        .content-panels {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .panel {
+            background: rgba(17, 17, 17, 0.9);
+            border: 1px solid #1a1a1a;
+            border-radius: 8px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .panel-title {
+            font-size: 15px;
+            font-weight: 500;
+            color: #fff;
+        }
+
+        .copy-btn {
+            background: #1a1a1a;
+            color: #999;
+            border: 1px solid #1a1a1a;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 400;
+            transition: all 0.15s ease;
+        }
+
+        .copy-btn:hover {
+            background: #222;
+            color: #fff;
+        }
+
+        .panel-content {
+            background: rgba(10, 10, 10, 0.8);
+            border: 1px solid #1a1a1a;
+            border-radius: 4px;
+            padding: 16px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            color: #ccc;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 16px;
+            }
+        }
+
+        /* Скроллбар */
+        .sidebar::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: #111111;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #333;
+        }
+    </style>
+</head>
+<body>
+    <!-- Частицы на фоне -->
+    <div id="particles-js"></div>
+    
+    <!-- Левое меню -->
+    <aside class="sidebar">
+        <!-- Профиль -->
+        <div class="profile-header">
+            <div class="profile-main">
+                <div class="profile-avatar">M</div>
+                <div class="profile-info">
+                    <div class="profile-name">MixerCheck</div>
+                    <div class="profile-status">beta</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Навигация -->
+        <div class="menu-navigation">
+            <!-- Программы -->
+            <div class="menu-section">
+                <div class="section-title">Программы</div>
+                <ul class="menu-items">
+                    <li class="menu-item"><a href="index.html" ><span class="menu-icon">🔎</span>Everything</a></li>
+                    <li class="menu-item"><a href="Sy.html"><span class="menu-icon">⚙️</span>SystemInformer</a></li>
+                    <li class="menu-item"><a href="PS.html"><span class="menu-icon">💻</span>PowerShell</a></li>
+                </ul>
+            </div>
+            
+            <!-- Мануалы -->
+            <div class="menu-section">
+                <div class="section-title">Мануалы</div>
+                <ul class="menu-items">
+                    <li class="menu-item"><a href="Echo.html" class="active"><span class="menu-icon">⛰️</span>Echo</a></li>
+                    <li class="menu-item"><a href="Core.html"><span class="menu-icon">🌋</span>Core</a></li>
+                    <li class="menu-item"><a href="Glitch.html"><span class="menu-icon">🗻</span>Glitch</a></li>
+                </ul>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Подключаем библиотеку частиц -->
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        // Инициализация частиц
+       particlesJS('particles-js', {
+    particles: {
+        number: {
+            value: 100,
+            density: {
+                enable: true,
+                value_area: 800
+            }
+        },
+        color: {
+            value: "#ffffff"  // Белый цвет
+        },
+        shape: {
+            type: "circle"    // Круглые точки
+        },
+        opacity: {
+            value: 0.5,       // Полупрозрачные
+            random: true,
+            anim: {
+                enable: true,
+                speed: 1,
+                opacity_min: 0.1,
+                sync: false
+            }
+        },
+        size: {
+            value: 2,         // Маленький размер
+            random: true,
+            anim: {
+                enable: true,
+                speed: 2,
+                size_min: 0.5,
+                sync: false
+            }
+        },
+        line_linked: {
+            enable: false     // Без соединительных линий
+        },
+        move: {
+            enable: true,
+            speed: 1,
+            direction: "none",
+            random: true,
+            straight: false,
+            out_mode: "out",
+            bounce: false
+        }
+    },
+    interactivity: {
+        detect_on: "canvas",
+        events: {
+            onhover: {
+                enable: true,
+                mode: "repulse"  // Отталкиваются при наведении
+            },
+            onclick: {
+                enable: true,
+                mode: "push"     // Добавляются при клике
+            },
+            resize: true
+        }
+    },
+    retina_detect: true
+});
+
+        // Функция для копирования текста
+        function setupCopyButtons() {
+            const copyButtons = document.querySelectorAll('.copy-btn');
+            copyButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const panelContent = this.parentElement.nextElementSibling;
+                    const textToCopy = panelContent.textContent;
+                    
+                    navigator.clipboard.writeText(textToCopy).then(() => {
+                        const originalText = this.textContent;
+                        this.textContent = '✓';
+                        
+                        setTimeout(() => {
+                            this.textContent = originalText;
+                        }, 1500);
+                    }).catch(err => {
+                        console.error('Ошибка копирования: ', err);
+                    });
+                });
+            });
+        }
+
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            setupCopyButtons();
+        });
+    </script>
+</body>
+</html>
