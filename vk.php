@@ -3,7 +3,7 @@ session_start();
 
 // Настройки приложения
 $client_id = "54274874"; // тот же ID
-$client_secret = "e66734ede66734ede66734ed2ce55b1fd7ee667e66734ed8f67de7802e4d06166dd06d5";
+$client_secret = "a837d460a837d460a837d46064ab0bff5aaa837a837d460c136df56ea3378811003d92b";
 $redirect_uri = "https://mixercheck.vercel.app/vk.php";
 
 // Проверяем наличие кода
