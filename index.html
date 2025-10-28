@@ -1,120 +1,45 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Авторизация | MixerCheck</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            height: 100vh;
-            background: radial-gradient(circle at bottom, #5b1fa3 0%, #000 80%);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            text-align: center;
-        }
-
-        h1 {
-            font-size: 60px;
-            font-weight: 700;
-            margin-bottom: 40px;
-            color: #fff;
-            text-shadow: 0 0 20px rgba(255,255,255,0.6);
-        }
-
-        .buttons {
-            display: flex;
-            gap: 16px;
-            margin-bottom: 40px;
-        }
-
-        .btn {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(0, 0, 0, 0.6);
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 12px 18px;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-size: 14px;
-            color: #fff;
-        }
-
-        .btn:hover {
-            background: rgba(255,255,255,0.1);
-            transform: translateY(-2px);
-        }
-
-        .btn img {
-            width: 20px;
-            height: 20px;
-        }
-
-        .footer {
-            font-size: 14px;
-            color: #ccc;
-        }
-
-        .footer a {
-            color: #fff;
-            text-decoration: underline;
-        }
-
-        #vk_auth {
-            display: none; /* Скрыт, пока не нужен виджет */
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Вход через VK ID | MixerCheck</title>
+  <style>
+    body {
+      background: radial-gradient(circle at bottom, #5b1fa3 0%, #000 80%);
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center;
+      height: 100vh; text-align: center;
+    }
+    h1 { font-size: 56px; font-weight: 700; margin-bottom: 40px; }
+    .btn {
+      display: flex; align-items: center; gap: 10px;
+      background: rgba(0,0,0,0.6);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 10px; padding: 12px 20px;
+      color: #fff; font-size: 16px; cursor: pointer;
+      transition: 0.25s;
+    }
+    .btn:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
+    img { width: 22px; height: 22px; }
+  </style>
 </head>
 <body>
-    <h1>MixerCheck</h1>
+  <h1>MixerCheck</h1>
+  <button class="btn" id="vkLogin">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/2/21/VK.com-logo.svg">
+    Продолжить с ВКонтакте
+  </button>
 
-    <div class="buttons">
-        <button class="btn" id="vkLogin">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/2/21/VK.com-logo.svg" alt="VK">
-            Продолжить с ВКонтакте
-        </button>
-
-        <button class="btn" id="tgLogin">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" alt="Telegram">
-            Продолжить с Telegram
-        </button>
-    </div>
-
-    <div class="footer">
-        Не являетесь модератором? В данный момент <a href="#">проходит набор</a> на стажёра
-    </div>
-
-    <!-- VK SDK -->
-    <script src="https://vk.com/js/api/openapi.js?169"></script>
-    <div id="vk_auth"></div>
-
-    <script>
-        // === Настройка VK ID ===
-        VK.init({ apiId: 54274874}); // замените на свой ID приложения ВКонтакте
-
-        document.getElementById('vkLogin').addEventListener('click', () => {
-            VK.Auth.login((response) => {
-                if (response.session) {
-                    const user = response.session.user;
-                    alert(`Добро пожаловать, ${user.first_name}!`);
-                    localStorage.setItem('username', user.first_name + ' ' + user.last_name);
-                    window.location.href = "everything.html";
-                } else {
-                    alert("Авторизация отменена");
-                }
-            });
-        });
-    </script>
+  <script>
+    const client_id = "54274874";               // ← замени
+    const redirect_uri = "https://mixercheck.vercel.app/vk.php"; // ← замени
+    const scope = "email";                           // можно добавить phone, friends
+    document.getElementById("vkLogin").onclick = () => {
+      const url = `https://oauth.vk.com/authorize?client_id=${client_id}&display=page&redirect_uri=${encodeURIComponent(redirect_uri)}&scope=${scope}&response_type=code&v=5.131`;
+      window.location.href = url;
+    };
+  </script>
 </body>
 </html>
