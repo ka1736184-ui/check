@@ -101,7 +101,7 @@
 
     <script>
         // === Настройка VK ID ===
-        VK.init({ apiId: 54274874 }); // замените на свой ID приложения ВКонтакте
+        VK.init({ apiId: 54274874}); // замените на свой ID приложения ВКонтакте
 
         document.getElementById('vkLogin').addEventListener('click', () => {
             VK.Auth.login((response) => {
@@ -114,11 +114,6 @@
                     alert("Авторизация отменена");
                 }
             });
-        });
-
-        // === Telegram (пока заглушка) ===
-        document.getElementById('tgLogin').addEventListener('click', () => {
-            alert('Telegram авторизация скоро будет добавлена!');
         });
     </script>
 </body>
