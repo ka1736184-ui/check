@@ -15,13 +15,11 @@
       height: 100vh;
       text-align: center;
     }
-
     h1 {
       font-size: 56px;
       font-weight: 700;
       margin-bottom: 40px;
     }
-
     .btn {
       display: flex;
       align-items: center;
@@ -35,16 +33,11 @@
       cursor: pointer;
       transition: 0.25s;
     }
-
     .btn:hover {
       background: rgba(255, 255, 255, 0.1);
       transform: translateY(-2px);
     }
-
-    img {
-      width: 22px;
-      height: 22px;
-    }
+    img { width: 22px; height: 22px; }
   </style>
 </head>
 <body>
@@ -58,15 +51,13 @@
   <script>
     // === Настройки авторизации VK ===
     const client_id = "54274874"; // ID твоего приложения ВКонтакте
-    const redirect_uri = "https://mixercheck.local/auth/vk.php"; // путь к твоему vk.php на сервере
-const scope = "email,openid";
-
+    const redirect_uri = "https://mixercheck.local/auth/vk.php"; // тот же URI, что в настройках VK
+    const scope = "email"; // только допустимые разрешения!
 
     document.getElementById("vkLogin").addEventListener("click", () => {
       const vkAuthUrl = `https://oauth.vk.com/authorize?client_id=${client_id}&display=page&redirect_uri=${encodeURIComponent(redirect_uri)}&scope=${scope}&response_type=code&v=5.131`;
       window.location.href = vkAuthUrl;
     });
   </script>
-
 </body>
 </html>
