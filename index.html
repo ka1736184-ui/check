@@ -3,15 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Everything | MixerCheck</title>
+    <title>Powershell | MixerCheck</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        body {
+        body 
+        {
             font-family: 'Segoe UI', system-ui, sans-serif;
             background: #0a0a0a;
             color: #ffffff;
@@ -21,7 +18,6 @@
             position: relative;
         }
 
-        /* Частицы на фоне */
         #particles-js {
             position: fixed;
             width: 100%;
@@ -31,7 +27,6 @@
             z-index: -1;
         }
 
-        /* Левое меню */
         .sidebar {
             width: 240px;
             background: #111111;
@@ -69,9 +64,7 @@
             color: #000;
         }
 
-        .profile-info {
-            flex: 1;
-        }
+        .profile-info { flex: 1; }
 
         .profile-name {
             font-size: 15px;
@@ -85,14 +78,28 @@
             color: #666;
         }
 
+        .logout-btn {
+            background: #1a1a1a;
+            border: 1px solid #222;
+            color: #999;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: 0.2s;
+        }
+
+        .logout-btn:hover {
+            background: #222;
+            color: #fff;
+        }
+
         .menu-navigation {
             flex: 1;
             padding: 0;
         }
 
-        .menu-section {
-            padding: 16px 0;
-        }
+        .menu-section { padding: 16px 0; }
 
         .section-title {
             color: #555;
@@ -103,9 +110,7 @@
             padding: 0 20px 8px 20px;
         }
 
-        .menu-items {
-            list-style: none;
-        }
+        .menu-items { list-style: none; }
 
         .menu-item a {
             display: flex;
@@ -147,7 +152,7 @@
         .content-panels {
             display: flex;
             flex-direction: column;
-            gap: 16px; /* Это должно работать */
+            gap: 16px;
         }
 
         .panel {
@@ -156,16 +161,12 @@
             border-radius: 8px;
             padding: 20px;
             backdrop-filter: blur(10px);
-            margin-bottom: 0; /* Убедимся, что нет лишних отступов */
             opacity: 0;
             transform: translateY(20px);
             animation: slideIn 0.5s forwards;
         }
 
-        /* Убедимся, что последняя панель не имеет отступа */
-        .panel:last-child {
-            margin-bottom: 0;
-        }
+        .panel:last-child { margin-bottom: 0; }
 
         .panel-header {
             display: flex;
@@ -194,12 +195,8 @@
             overflow: hidden;
         }
 
-        .copy-btn:hover {
-            background: #222;
-            color: #fff;
-        }
+        .copy-btn:hover { background: #222; color: #fff; }
 
-        /* Эффект клика */
         .copy-btn:active::after {
             content: '';
             position: absolute;
@@ -226,74 +223,33 @@
             white-space: pre-wrap;
         }
 
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 100%;
-                height: auto;
-                position: relative;
-            }
-            
-            .main-content {
-                margin-left: 0;
-                padding: 16px;
-            }
-
-            .content-panels {
-                gap: 12px; /* Меньший gap на мобильных */
-            }
-        }
-
-        .sidebar::-webkit-scrollbar {
-            width: 3px;
-        }
-
-        .sidebar::-webkit-scrollbar-track {
-            background: #111111;
-        }
-
-        .sidebar::-webkit-scrollbar-thumb {
-            background: #333;
-        }
-
-        /* Анимация для панели */
         @keyframes slideIn {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Анимация ripple-эффекта */
         @keyframes ripple {
-            0% {
-                width: 0;
-                height: 0;
-                opacity: 0.5;
-            }
-            100% {
-                width: 200px;
-                height: 200px;
-                opacity: 0;
-            }
+            0% { width: 0; height: 0; opacity: 0.5; }
+            100% { width: 200px; height: 200px; opacity: 0; }
         }
     </style>
+        <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
     <div id="particles-js"></div>
-    <link rel="stylesheet" href="css/main.css">
 
     <aside class="sidebar">
         <div class="profile-header">
             <div class="profile-main">
                 <div class="profile-avatar">M</div>
                 <div class="profile-info">
-                    <div class="profile-name">MixerCheck</div>
+                    <div class="profile-name" id="usernameDisplay">MixerCheck</div>
                     <div class="profile-status">beta</div>
                 </div>
+                <button class="logout-btn" id="logoutBtn">Выйти</button>
             </div>
         </div>
 
-        <div class="menu-navigation">
+         <div class="menu-navigation">
             <div class="menu-section">
                 <div class="section-title">Программы</div>
                 <ul class="menu-items">
@@ -357,34 +313,51 @@
 
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <script>
+        // === Проверка авторизации ===
+        document.addEventListener('DOMContentLoaded', () => {
+            const username = localStorage.getItem('username');
+            if (!username) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            document.getElementById('usernameDisplay').textContent = username[0].toUpperCase() + username.slice(1);
+
+            // Выход по кнопке
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                localStorage.removeItem('username');
+                window.location.href = 'login.html';
+            });
+        });
+
+        // === Частицы ===
         particlesJS('particles-js', {
             particles: {
                 number: { value: 100, density: { enable: true, value_area: 800 } },
                 color: { value: "#ffffff" },
                 shape: { type: "circle" },
-                opacity: { value: 0.5, random: true, anim: { enable: true, speed: 1, opacity_min: 0.1, sync: false } },
-                size: { value: 2, random: true, anim: { enable: true, speed: 2, size_min: 0.5, sync: false } },
+                opacity: { value: 0.5, random: true },
+                size: { value: 2, random: true },
                 line_linked: { enable: false },
-                move: { enable: true, speed: 1, direction: "none", random: true, straight: false, out_mode: "out", bounce: false }
+                move: { enable: true, speed: 1, random: true }
             },
             interactivity: {
                 detect_on: "canvas",
-                events: { onhover: { enable: true, mode: "repulse" }, onclick: { enable: true, mode: "push" }, resize: true }
+                events: { onhover: { enable: true, mode: "repulse" } }
             },
             retina_detect: true
         });
 
+        // === Копирование ===
         function setupCopyButtons() {
-            const copyButtons = document.querySelectorAll('.copy-btn');
-            copyButtons.forEach(button => {
+            document.querySelectorAll('.copy-btn').forEach(button => {
                 button.addEventListener('click', function() {
-                    const panelContent = this.parentElement.nextElementSibling;
-                    const textToCopy = panelContent.textContent;
-                    navigator.clipboard.writeText(textToCopy).then(() => {
-                        const originalText = this.textContent;
+                    const text = this.parentElement.nextElementSibling.textContent;
+                    navigator.clipboard.writeText(text).then(() => {
+                        const original = this.textContent;
                         this.textContent = '✓';
-                        setTimeout(() => { this.textContent = originalText; }, 1500);
-                    }).catch(err => { console.error('Ошибка копирования: ', err); });
+                        setTimeout(() => this.textContent = original, 1500);
+                    });
                 });
             });
         }
