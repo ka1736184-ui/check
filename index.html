@@ -5,233 +5,120 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Авторизация | MixerCheck</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: #0a0a0a;
-            color: #ffffff;
             height: 100vh;
+            background: radial-gradient(circle at bottom, #5b1fa3 0%, #000 80%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        #particles-js {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            z-index: -1;
-        }
-
-        .login-container {
-            background: rgba(17, 17, 17, 0.9);
-            border: 1px solid #1a1a1a;
-            border-radius: 12px;
-            padding: 32px 40px;
-            width: 100%;
-            max-width: 420px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+            color: white;
             text-align: center;
-            animation: slideIn 0.7s ease forwards;
         }
 
-        .login-title {
-            font-size: 22px;
-            font-weight: 600;
-            color: #ff6b00;
-            margin-bottom: 8px;
-        }
-
-        .login-subtitle {
-            font-size: 13px;
-            color: #888;
-            margin-bottom: 28px;
-        }
-
-        .form-group {
-            text-align: left;
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            font-size: 13px;
-            color: #aaa;
-            margin-bottom: 6px;
-        }
-
-        input {
-            width: 100%;
-            background: #111;
-            border: 1px solid #1a1a1a;
-            border-radius: 6px;
-            padding: 10px 12px;
-            font-size: 14px;
+        h1 {
+            font-size: 60px;
+            font-weight: 700;
+            margin-bottom: 40px;
             color: #fff;
-            outline: none;
-            transition: border 0.2s ease;
+            text-shadow: 0 0 20px rgba(255,255,255,0.6);
         }
 
-        input:focus {
-            border-color: #ff6b00;
-            box-shadow: 0 0 4px rgba(255, 107, 0, 0.3);
+        .buttons {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 40px;
         }
 
         .btn {
-            width: 100%;
-            background: #ff6b00;
-            color: #000;
-            font-weight: 600;
-            border: none;
-            border-radius: 6px;
-            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 12px 18px;
+            border-radius: 10px;
             cursor: pointer;
-            font-size: 15px;
             transition: all 0.2s ease;
+            font-size: 14px;
+            color: #fff;
         }
 
         .btn:hover {
-            background: #ff812a;
+            background: rgba(255,255,255,0.1);
+            transform: translateY(-2px);
         }
 
-        .message {
-            margin-top: 16px;
-            padding: 10px;
-            border-radius: 6px;
-            font-size: 13px;
-            display: none;
-        }
-
-        .success {
-            background: rgba(46, 204, 113, 0.1);
-            color: #2ecc71;
-            border: 1px solid rgba(46, 204, 113, 0.4);
-        }
-
-        .error {
-            background: rgba(231, 76, 60, 0.1);
-            color: #e74c3c;
-            border: 1px solid rgba(231, 76, 60, 0.4);
-        }
-
-        .vk-auth {
-            margin-top: 20px;
+        .btn img {
+            width: 20px;
+            height: 20px;
         }
 
         .footer {
-            text-align: center;
-            color: #555;
-            font-size: 12px;
-            margin-top: 25px;
+            font-size: 14px;
+            color: #ccc;
         }
 
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        .footer a {
+            color: #fff;
+            text-decoration: underline;
+        }
+
+        #vk_auth {
+            display: none; /* Скрыт, пока не нужен виджет */
         }
     </style>
 </head>
 <body>
-    <div id="particles-js"></div>
+    <h1>MixerCheck</h1>
 
-    <div class="login-container">
-        <h1 class="login-title">MixerCheck</h1>
-        <p class="login-subtitle">Авторизация для доступа к панели</p>
+    <div class="buttons">
+        <button class="btn" id="vkLogin">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/2/21/VK.com-logo.svg" alt="VK">
+            Продолжить с ВКонтакте
+        </button>
 
-        <div class="form-group">
-            <label for="username">Логин</label>
-            <input type="text" id="username" placeholder="Введите ваш логин">
-        </div>
-
-        <div class="form-group">
-            <label for="password">Пароль</label>
-            <input type="password" id="password" placeholder="Введите ваш пароль">
-        </div>
-
-        <button class="btn" id="loginBtn">Войти</button>
-
-        <div id="vk_auth" class="vk-auth"></div>
-
-        <div id="message" class="message"></div>
-
-        <div class="footer">© 2025 MixerCheck. Все права защищены.</div>
+        <button class="btn" id="tgLogin">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" alt="Telegram">
+            Продолжить с Telegram
+        </button>
     </div>
 
-    <!-- VK API -->
-    <script src="https://vk.com/js/api/openapi.js?169"></script>
+    <div class="footer">
+        Не являетесь модератором? В данный момент <a href="#">проходит набор</a> на стажёра
+    </div>
 
-    <!-- Частицы -->
-    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <!-- VK SDK -->
+    <script src="https://vk.com/js/api/openapi.js?169"></script>
+    <div id="vk_auth"></div>
 
     <script>
-        // === Частицы на фоне ===
-        particlesJS('particles-js', {
-            particles: {
-                number: { value: 100, density: { enable: true, value_area: 800 } },
-                color: { value: "#ffffff" },
-                shape: { type: "circle" },
-                opacity: { value: 0.5, random: true },
-                size: { value: 2, random: true },
-                line_linked: { enable: false },
-                move: { enable: true, speed: 1, random: true }
-            },
-            interactivity: {
-                detect_on: "canvas",
-                events: { onhover: { enable: true, mode: "repulse" } }
-            },
-            retina_detect: true
+        // === Настройка VK ID ===
+        VK.init({ apiId: 54274874 }); // замените на свой ID приложения ВКонтакте
+
+        document.getElementById('vkLogin').addEventListener('click', () => {
+            VK.Auth.login((response) => {
+                if (response.session) {
+                    const user = response.session.user;
+                    alert(`Добро пожаловать, ${user.first_name}!`);
+                    localStorage.setItem('username', user.first_name + ' ' + user.last_name);
+                    window.location.href = "everything.html";
+                } else {
+                    alert("Авторизация отменена");
+                }
+            });
         });
 
-        // === Обычная авторизация ===
-        const loginBtn = document.getElementById('loginBtn');
-        const message = document.getElementById('message');
-
-        loginBtn.addEventListener('click', () => {
-            const username = document.getElementById('username').value.trim().toLowerCase();
-            const password = document.getElementById('password').value.trim();
-
-            const validUsers = [
-                { username: 'masileka', password: 'masilekamasileka' },
-                { username: 'zuazuga', password: 'zuazugazuazuga' }
-            ];
-
-            const user = validUsers.find(u => u.username === username && u.password === password);
-
-            if (user) {
-                message.textContent = '✅ Успешный вход! Перенаправление...';
-                message.className = 'message success';
-                message.style.display = 'block';
-                localStorage.setItem('username', username);
-                setTimeout(() => window.location.href = 'everything.html', 1000);
-            } else {
-                message.textContent = '❌ Неверный логин или пароль';
-                message.className = 'message error';
-                message.style.display = 'block';
-            }
-        });
-
-        // === Вход через VK ID ===
-        VK.init({ apiId: 54274874 }); // 👉 замени на ID твоего приложения VK
-
-        VK.Widgets.Auth("vk_auth", {
-            width: "250px",
-            onAuth: function(user) {
-                localStorage.setItem('username', user.first_name + " " + user.last_name);
-                message.textContent = `✅ Добро пожаловать, ${user.first_name}!`;
-                message.className = 'message success';
-                message.style.display = 'block';
-                setTimeout(() => window.location.href = 'everything.html', 1000);
-            }
-        });
-
-        // === Вход по Enter ===
-        document.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') loginBtn.click();
+        // === Telegram (пока заглушка) ===
+        document.getElementById('tgLogin').addEventListener('click', () => {
+            alert('Telegram авторизация скоро будет добавлена!');
         });
     </script>
 </body>
