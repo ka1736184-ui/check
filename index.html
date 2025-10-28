@@ -1,21 +1,22 @@
-﻿﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Powershell | MixerCheck</title>
+    <title>Авторизация | MixerCheck</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        body 
-        {
+        body {
             font-family: 'Segoe UI', system-ui, sans-serif;
             background: #0a0a0a;
             color: #ffffff;
-            min-height: 100vh;
+            height: 100vh;
             display: flex;
-            font-weight: 400;
+            justify-content: center;
+            align-items: center;
             position: relative;
+            overflow: hidden;
         }
 
         #particles-js {
@@ -27,310 +28,137 @@
             z-index: -1;
         }
 
-        .sidebar {
-            width: 240px;
-            background: #111111;
-            height: 100vh;
-            position: fixed;
-            left: 0;
-            top: 0;
-            border-right: 1px solid #1a1a1a;
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .profile-header {
-            padding: 24px 20px;
-            border-bottom: 1px solid #1a1a1a;
-        }
-
-        .profile-main {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .profile-avatar {
-            width: 36px;
-            height: 36px;
-            background: #ff6b00;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            font-size: 14px;
-            color: #000;
-        }
-
-        .profile-info { flex: 1; }
-
-        .profile-name {
-            font-size: 15px;
-            font-weight: 600;
-            color: #fff;
-            margin-bottom: 2px;
-        }
-
-        .profile-status {
-            font-size: 12px;
-            color: #666;
-        }
-
-        .logout-btn {
-            background: #1a1a1a;
-            border: 1px solid #222;
-            color: #999;
-            padding: 6px 10px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: 0.2s;
-        }
-
-        .logout-btn:hover {
-            background: #222;
-            color: #fff;
-        }
-
-        .menu-navigation {
-            flex: 1;
-            padding: 0;
-        }
-
-        .menu-section { padding: 16px 0; }
-
-        .section-title {
-            color: #555;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding: 0 20px 8px 20px;
-        }
-
-        .menu-items { list-style: none; }
-
-        .menu-item a {
-            display: flex;
-            align-items: center;
-            padding: 10px 20px;
-            color: #999;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 400;
-            transition: all 0.15s ease;
-        }
-
-        .menu-item a:hover {
-            color: #fff;
-            background: #1a1a1a;
-        }
-
-        .menu-item a.active {
-            color: #ff6b00;
-            background: #1a1a1a;
-            font-weight: 500;
-        }
-
-        .menu-icon {
-            width: 16px;
-            margin-right: 12px;
-            text-align: center;
-            font-size: 13px;
-        }
-
-        .main-content {
-            flex: 1;
-            margin-left: 240px;
-            padding: 24px;
-            min-height: 100vh;
-            overflow-y: auto;
-        }
-
-        .content-panels {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .panel {
+        .login-container {
             background: rgba(17, 17, 17, 0.9);
             border: 1px solid #1a1a1a;
-            border-radius: 8px;
-            padding: 20px;
-            backdrop-filter: blur(10px);
-            opacity: 0;
-            transform: translateY(20px);
-            animation: slideIn 0.5s forwards;
+            border-radius: 12px;
+            padding: 32px 40px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+            text-align: center;
+            animation: slideIn 0.7s ease forwards;
         }
 
-        .panel:last-child { margin-bottom: 0; }
-
-        .panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
+        .login-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: #ff6b00;
+            margin-bottom: 8px;
         }
 
-        .panel-title {
-            font-size: 15px;
-            font-weight: 500;
-            color: #fff;
-        }
-
-        .copy-btn {
-            background: #1a1a1a;
-            color: #999;
-            border: 1px solid #1a1a1a;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 400;
-            transition: all 0.15s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .copy-btn:hover { background: #222; color: #fff; }
-
-        .copy-btn:active::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 107, 0, 0.3);
-            transform: translate(-50%, -50%);
-            animation: ripple 0.6s ease-out;
-        }
-
-        .panel-content {
-            background: rgba(10, 10, 10, 0.8);
-            border: 1px solid #1a1a1a;
-            border-radius: 4px;
-            padding: 16px;
-            font-family: 'Monaco', 'Consolas', monospace;
+        .login-subtitle {
             font-size: 13px;
-            line-height: 1.4;
-            color: #ccc;
-            overflow-x: auto;
-            white-space: pre-wrap;
+            color: #888;
+            margin-bottom: 28px;
+        }
+
+        .form-group {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            color: #aaa;
+            margin-bottom: 6px;
+        }
+
+        input {
+            width: 100%;
+            background: #111;
+            border: 1px solid #1a1a1a;
+            border-radius: 6px;
+            padding: 10px 12px;
+            font-size: 14px;
+            color: #fff;
+            outline: none;
+            transition: border 0.2s ease;
+        }
+
+        input:focus {
+            border-color: #ff6b00;
+            box-shadow: 0 0 4px rgba(255, 107, 0, 0.3);
+        }
+
+        .btn {
+            width: 100%;
+            background: #ff6b00;
+            color: #000;
+            font-weight: 600;
+            border: none;
+            border-radius: 6px;
+            padding: 12px;
+            cursor: pointer;
+            font-size: 15px;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            background: #ff812a;
+        }
+
+        .message {
+            margin-top: 16px;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            display: none;
+        }
+
+        .success {
+            background: rgba(46, 204, 113, 0.1);
+            color: #2ecc71;
+            border: 1px solid rgba(46, 204, 113, 0.4);
+        }
+
+        .error {
+            background: rgba(231, 76, 60, 0.1);
+            color: #e74c3c;
+            border: 1px solid rgba(231, 76, 60, 0.4);
+        }
+
+        .footer {
+            text-align: center;
+            color: #555;
+            font-size: 12px;
+            margin-top: 25px;
         }
 
         @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
-        @keyframes ripple {
-            0% { width: 0; height: 0; opacity: 0.5; }
-            100% { width: 200px; height: 200px; opacity: 0; }
-        }
     </style>
-        <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
     <div id="particles-js"></div>
 
-    <aside class="sidebar">
-        <div class="profile-header">
-            <div class="profile-main">
-                <div class="profile-avatar">M</div>
-                <div class="profile-info">
-                    <div class="profile-name" id="usernameDisplay">MixerCheck</div>
-                    <div class="profile-status">beta</div>
-                </div>
-                <button class="logout-btn" id="logoutBtn">Выйти</button>
-            </div>
+    <div class="login-container">
+        <h1 class="login-title">MixerCheck</h1>
+        <p class="login-subtitle">Авторизация для доступа к панели</p>
+
+        <div class="form-group">
+            <label for="username">Логин</label>
+            <input type="text" id="username" placeholder="Введите ваш логин">
         </div>
 
-         <div class="menu-navigation">
-            <div class="menu-section">
-                <div class="section-title">Программы</div>
-                <ul class="menu-items">
-                    <li class="menu-item"><a href="index.html" class="active"><span class="menu-icon">🔎</span>Everything</a></li>
-                    <li class="menu-item"><a href="Sy.html"><span class="menu-icon">⚙️</span>SystemInformer</a></li>
-                    <li class="menu-item"><a href="PS.html"><span class="menu-icon">💻</span>PowerShell</a></li>
+        <div class="form-group">
+            <label for="password">Пароль</label>
+            <input type="password" id="password" placeholder="Введите ваш пароль">
         </div>
-    </aside>
 
-    <div class="main-content">
-        <div class="content-panels">
-            <div class="panel">
-                <div class="panel-header">
-                    <div class="panel-title">Поиск запрещенных клиентов «Minecraft»</div>
-                    <button class="copy-btn">Копировать</button>
-                </div>
-                <div class="panel-content">ext:.exe;.jar regex:(impact|wurst|bleach[-_]?hack|aristois|huzuni|skill[-_]?client|nodus|inertia|ares|sigma|meteor|atomic|zamorozka|liquid[-_]?bounce|nurik|nursultan|wisefolder|celestial|calestial|celka|expensive|neverhook|excellent|wexside|wild|minced|deadcode|akrien|jigsaw|future|jessica|dreampool|vape|infinity|squad|no[-_]?rules|konas|zeus[-_]?client|rich[-_]?client|ghost[-_]?client|rusher[-_]?hack|thunder[-_]?hack|moon[-_]?hack|winner|nova|exire|doomsday|nightware|ricardo|extazyy|troxill|arbuz|dauntiblyat|rename[-_]?me[-_]?please|edit[-_]?me|takker|faker|xameleon|fuze[-_]?client|wise[-_]?folder|net[-_]?limiter|feather|delta|eclipse|venus|jex|hakari|hush|hach|rogalik|catlavan|haruka|wissend|fluger|sperma|vortex|newcode|astra|britva|bariton|bot|player|freecam|bedrock|hotbar|swap|chest|gumball|tweak|entity|crystal|optimizer|viabackwards|viaforge|viaproxy|hitbox|elytra|xaero|through|mob|auto|place|health|inventory|x[-_]?ray|clean[-_]?cut|smart[-_]?moving|save[-_]?searcher|world[-_]?downloader|trade[-_]?finder|chorus[-_]?find|inv[-_]?move|chunk[-_]?copy|seed[-_]?cracker|diamond[-_]?sim|forge[-_]?hax|step[-_]?up|client[-_]?commands|camera[-_]?utils|cheat[-_]?utils|universal[-_]?mod|swing[-_]?through[-_]?grass)</div>
-            </div>
+        <button class="btn" id="loginBtn">Войти</button>
 
-            <div class="panel">
-                <div class="panel-header">
-                    <div class="panel-title">Поиск запрещенных конфигурационных файлов</div>
-                    <button class="copy-btn">Копировать</button>
-                </div>
-                <div class="panel-content">ext:.txt;.json;.toml;.yml;.cfg;.properties;.ini | folder: dm:last60days regex:(shellbag|bariton|bot|player|freecam|bedrock|hotbar|swap|chest|gumball|tweak|entity|crystal|optimizer|viabackwards|viaforge|viaproxy|hitbox|elytra|xaero|through|mob|auto|place|health|inventory|x[-_]?ray|clean[-_]?cut|smart[-_]?moving|save[-_]?searcher|world[-_]?downloader|trade[-_]?finder|chorus[-_]?find|inv[-_]?move|chunk[-_]?copy|seed[-_]?cracker|diamond[-_]?sim|forge[-_]?hax|step[-_]?up|client[-_]?commands|camera[-_]?utils|cheat[-_]?utils|universal[-_]?mod|swing[-_]?through[-_]?grass)</div>
-            </div>
+        <div id="message" class="message"></div>
 
-            <div class="panel">
-                <div class="panel-header">
-                    <div class="panel-title">Поиск vec.dll | MP3 чит-файлов</div>
-                    <button class="copy-btn">Копировать</button>
-                </div>
-                <div class="panel-content">size:30720 utf8content:net/minecraft/util/math/axisalignedbb | size:9400174</div>
-            </div>
-
-            <div class="panel">
-                <div class="panel-header">
-                    <div class="panel-title">Поиск запрещенного ПО</div>
-                    <button class="copy-btn">Копировать</button>
-                </div>
-                <div class="panel-content">*.exe size:1566208 | size:22285824 | size:1010176 | size:22433280 | size:348672 | size:352256 | size:782848 | size:6887424 | size:763392 | size:6111 | size:743424 | size:1767424 | size:823808 | size:18126848 | &lt;size:700kb..5mb utf8content:net/minecraftforge/fml/loading/FMLLoader | glowEsp&gt; | &lt;size:14mb..17mb utf8content:D3D11CreateDeviceAndSwapChain|LoadLibraryA&gt;</div>
-            </div>
-
-            <div class="panel">
-                <div class="panel-header">
-                    <div class="panel-title">Поиск «Doomsday» [Способ 1]</div>
-                    <button class="copy-btn">Копировать</button>
-                </div>
-                <div class="panel-content">*.jar size:21kb-10mb utf8content:net/java/s.class utf8content:net/java/f.class</div>
-            </div>
-
-            <div class="panel">
-                <div class="panel-header">
-                    <div class="panel-title">Поиск «Doomsday» [Способ 2]</div>
-                    <button class="copy-btn">Копировать</button>
-                </div>
-                <div class="panel-content">size:21kb-10mb utf8content:net/java/s.class utf8content:net/java/f.class</div>
-            </div>
-        </div>
+        <div class="footer">© 2025 MixerCheck. Все права защищены.</div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <script>
-        // === Проверка авторизации ===
-        document.addEventListener('DOMContentLoaded', () => {
-            const username = localStorage.getItem('username');
-            if (!username) {
-                window.location.href = 'login.html';
-                return;
-            }
-
-            document.getElementById('usernameDisplay').textContent = username[0].toUpperCase() + username.slice(1);
-
-            // Выход по кнопке
-            document.getElementById('logoutBtn').addEventListener('click', () => {
-                localStorage.removeItem('username');
-                window.location.href = 'login.html';
-            });
-        });
-
-        // === Частицы ===
+        // === Частицы на фоне ===
         particlesJS('particles-js', {
             particles: {
                 number: { value: 100, density: { enable: true, value_area: 800 } },
@@ -348,21 +176,38 @@
             retina_detect: true
         });
 
-        // === Копирование ===
-        function setupCopyButtons() {
-            document.querySelectorAll('.copy-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    const text = this.parentElement.nextElementSibling.textContent;
-                    navigator.clipboard.writeText(text).then(() => {
-                        const original = this.textContent;
-                        this.textContent = '✓';
-                        setTimeout(() => this.textContent = original, 1500);
-                    });
-                });
-            });
-        }
+        // === Авторизация ===
+        const loginBtn = document.getElementById('loginBtn');
+        const message = document.getElementById('message');
 
-        document.addEventListener('DOMContentLoaded', setupCopyButtons);
+        loginBtn.addEventListener('click', () => {
+            const username = document.getElementById('username').value.trim().toLowerCase();
+            const password = document.getElementById('password').value.trim();
+
+            const validUsers = [
+                { username: 'masileka', password: 'masilekamasileka' },
+                { username: 'zuazuga', password: 'zuazugazuazuga' }
+            ];
+
+            const user = validUsers.find(u => u.username === username && u.password === password);
+
+            if (user) {
+                message.textContent = '✅ Успешный вход! Перенаправление...';
+                message.className = 'message success';
+                message.style.display = 'block';
+                localStorage.setItem('username', username);
+                setTimeout(() => window.location.href = 'everything.html', 1000);
+            } else {
+                message.textContent = '❌ Неверный логин или пароль';
+                message.className = 'message error';
+                message.style.display = 'block';
+            }
+        });
+
+        // === Вход по Enter ===
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') loginBtn.click();
+        });
     </script>
 </body>
 </html>

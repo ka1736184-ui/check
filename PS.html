@@ -281,7 +281,7 @@ $ErrorActionPreference="SilentlyContinue";$output="$env:USERPROFILE\Desktop\chec
         document.addEventListener('DOMContentLoaded', () => {
             const username = localStorage.getItem('username');
             if (!username) {
-                window.location.href = 'login.html';
+                window.location.href = 'index.html';
                 return;
             }
 
@@ -290,7 +290,7 @@ $ErrorActionPreference="SilentlyContinue";$output="$env:USERPROFILE\Desktop\chec
             // Выход по кнопке
             document.getElementById('logoutBtn').addEventListener('click', () => {
                 localStorage.removeItem('username');
-                window.location.href = 'login.html';
+                window.location.href = 'index.html';
             });
         });
 
