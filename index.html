@@ -57,13 +57,12 @@
 
   <script>
     // === Настройки авторизации VK ===
-    const client_id = "54274874"; // ID твоего приложения ВКонтакте
-    const redirect_uri = "https://mixercheck.vercel.app/vk.php"; // путь к твоему vk.php на сервере
-const scope = "email,openid";
-
+    const client_id = "54274874"; // Твой ID приложения ВКонтакте
+    const redirect_uri = "https://mixercheck.vercel.app/vk.php"; // путь к vk.php
+    const scope = "email,offline"; // допустимые права для oauth.vk.com
 
     document.getElementById("vkLogin").addEventListener("click", () => {
-      const vkAuthUrl = `https://oauth.vk.com/authorize?client_id=${54274874}&display=page&redirect_uri=${encodeURIComponent(redirect_uri)}&scope=${scope}&response_type=code&v=5.131`;
+      const vkAuthUrl = `https://oauth.vk.com/authorize?client_id=${client_id}&display=page&redirect_uri=${encodeURIComponent(redirect_uri)}&scope=${scope}&response_type=code&v=5.131`;
       window.location.href = vkAuthUrl;
     });
   </script>
