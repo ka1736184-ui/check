@@ -119,6 +119,10 @@
             border: 1px solid rgba(231, 76, 60, 0.4);
         }
 
+        .vk-auth {
+            margin-top: 20px;
+        }
+
         .footer {
             text-align: center;
             color: #555;
@@ -151,12 +155,19 @@
 
         <button class="btn" id="loginBtn">Войти</button>
 
+        <div id="vk_auth" class="vk-auth"></div>
+
         <div id="message" class="message"></div>
 
         <div class="footer">© 2025 MixerCheck. Все права защищены.</div>
     </div>
 
+    <!-- VK API -->
+    <script src="https://vk.com/js/api/openapi.js?169"></script>
+
+    <!-- Частицы -->
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+
     <script>
         // === Частицы на фоне ===
         particlesJS('particles-js', {
@@ -176,7 +187,7 @@
             retina_detect: true
         });
 
-        // === Авторизация ===
+        // === Обычная авторизация ===
         const loginBtn = document.getElementById('loginBtn');
         const message = document.getElementById('message');
 
@@ -201,6 +212,20 @@
                 message.textContent = '❌ Неверный логин или пароль';
                 message.className = 'message error';
                 message.style.display = 'block';
+            }
+        });
+
+        // === Вход через VK ID ===
+        VK.init({ apiId: 54274874 }); // 👉 замени на ID твоего приложения VK
+
+        VK.Widgets.Auth("vk_auth", {
+            width: "250px",
+            onAuth: function(user) {
+                localStorage.setItem('username', user.first_name + " " + user.last_name);
+                message.textContent = `✅ Добро пожаловать, ${user.first_name}!`;
+                message.className = 'message success';
+                message.style.display = 'block';
+                setTimeout(() => window.location.href = 'everything.html', 1000);
             }
         });
 
