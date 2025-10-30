@@ -1,5 +1,18 @@
 <!DOCTYPE html>
 <html lang="ru">
+    <script>
+document.addEventListener("DOMContentLoaded", () => {
+  const username = localStorage.getItem("username");
+  const users = JSON.parse(localStorage.getItem("users")) || [];
+  const user = users.find(u => u.username === username);
+
+  if (!user || !user.access.includes(location.pathname.split("/").pop())) {
+    alert("⛔ У вас нет доступа к этой странице!");
+    window.location.href = "index.html";
+  }
+});
+</script>
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">

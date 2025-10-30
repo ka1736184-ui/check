@@ -1,368 +1,253 @@
 ﻿﻿<!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Everything | MixerCheck</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Everything | MixerCheck</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        body 
-        {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: #0a0a0a;
-            color: #ffffff;
-            min-height: 100vh;
-            display: flex;
-            font-weight: 400;
-            position: relative;
-        }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0a0a0a;
+      color: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      font-weight: 400;
+      position: relative;
+    }
 
-        #particles-js {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            z-index: -1;
-        }
+    #particles-js {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      z-index: -1;
+    }
 
-        .sidebar {
-            width: 240px;
-            background: #111111;
-            height: 100vh;
-            position: fixed;
-            left: 0;
-            top: 0;
-            border-right: 1px solid #1a1a1a;
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-        }
+    .sidebar {
+      width: 240px;
+      background: #111111;
+      height: 100vh;
+      position: fixed;
+      left: 0;
+      top: 0;
+      border-right: 1px solid #1a1a1a;
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+    }
 
-        .profile-header {
-            padding: 24px 20px;
-            border-bottom: 1px solid #1a1a1a;
-        }
+    .profile-header {
+      padding: 24px 20px;
+      border-bottom: 1px solid #1a1a1a;
+    }
 
-        .profile-main {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+    .profile-main {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
 
-        .profile-avatar {
-            width: 36px;
-            height: 36px;
-            background: #ff6b00;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            font-size: 14px;
-            color: #000;
-        }
+    .profile-avatar {
+      width: 36px;
+      height: 36px;
+      background: #ff6b00;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 14px;
+      color: #000;
+    }
 
-        .profile-info { flex: 1; }
+    .profile-info { flex: 1; }
+    .profile-name { font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 2px; }
+    .profile-status { font-size: 12px; color: #666; }
 
-        .profile-name {
-            font-size: 15px;
-            font-weight: 600;
-            color: #fff;
-            margin-bottom: 2px;
-        }
+    .logout-btn {
+      background: #1a1a1a;
+      border: 1px solid #222;
+      color: #999;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: 0.2s;
+    }
 
-        .profile-status {
-            font-size: 12px;
-            color: #666;
-        }
+    .logout-btn:hover { background: #222; color: #fff; }
 
-        .logout-btn {
-            background: #1a1a1a;
-            border: 1px solid #222;
-            color: #999;
-            padding: 6px 10px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: 0.2s;
-        }
+    .menu-navigation { flex: 1; padding: 0; }
+    .section-title {
+      color: #555;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 16px 20px 8px 20px;
+    }
 
-        .logout-btn:hover {
-            background: #222;
-            color: #fff;
-        }
+    .menu-items { list-style: none; }
+    .menu-item a {
+      display: flex;
+      align-items: center;
+      padding: 10px 20px;
+      color: #999;
+      text-decoration: none;
+      font-size: 14px;
+      transition: 0.15s ease;
+    }
+    .menu-item a:hover { color: #fff; background: #1a1a1a; }
+    .menu-item a.active { color: #ff6b00; background: #1a1a1a; font-weight: 500; }
 
-        .menu-navigation {
-            flex: 1;
-            padding: 0;
-        }
+    .menu-icon { width: 16px; margin-right: 12px; text-align: center; }
 
-        .menu-section { padding: 16px 0; }
+    .main-content {
+      flex: 1;
+      margin-left: 240px;
+      padding: 24px;
+      min-height: 100vh;
+      overflow-y: auto;
+    }
 
-        .section-title {
-            color: #555;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding: 0 20px 8px 20px;
-        }
+    .panel {
+      background: rgba(17, 17, 17, 0.9);
+      border: 1px solid #1a1a1a;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 16px;
+      animation: slideIn 0.5s ease forwards;
+      opacity: 0;
+      transform: translateY(15px);
+    }
 
-        .menu-items { list-style: none; }
+    .panel-title { color: #fff; margin-bottom: 10px; font-weight: 500; }
+    .panel-content {
+      background: #0d0d0d;
+      border: 1px solid #1a1a1a;
+      border-radius: 6px;
+      padding: 12px;
+      font-family: Consolas, monospace;
+      font-size: 13px;
+      color: #ccc;
+      white-space: pre-wrap;
+    }
 
-        .menu-item a {
-            display: flex;
-            align-items: center;
-            padding: 10px 20px;
-            color: #999;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 400;
-            transition: all 0.15s ease;
-        }
-
-        .menu-item a:hover {
-            color: #fff;
-            background: #1a1a1a;
-        }
-
-        .menu-item a.active {
-            color: #ff6b00;
-            background: #1a1a1a;
-            font-weight: 500;
-        }
-
-        .menu-icon {
-            width: 16px;
-            margin-right: 12px;
-            text-align: center;
-            font-size: 13px;
-        }
-
-        .main-content {
-            flex: 1;
-            margin-left: 240px;
-            padding: 24px;
-            min-height: 100vh;
-            overflow-y: auto;
-        }
-
-        .content-panels {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .panel {
-            background: rgba(17, 17, 17, 0.9);
-            border: 1px solid #1a1a1a;
-            border-radius: 8px;
-            padding: 20px;
-            backdrop-filter: blur(10px);
-            opacity: 0;
-            transform: translateY(20px);
-            animation: slideIn 0.5s forwards;
-        }
-
-        .panel:last-child { margin-bottom: 0; }
-
-        .panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-
-        .panel-title {
-            font-size: 15px;
-            font-weight: 500;
-            color: #fff;
-        }
-
-        .copy-btn {
-            background: #1a1a1a;
-            color: #999;
-            border: 1px solid #1a1a1a;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 400;
-            transition: all 0.15s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .copy-btn:hover { background: #222; color: #fff; }
-
-        .copy-btn:active::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 107, 0, 0.3);
-            transform: translate(-50%, -50%);
-            animation: ripple 0.6s ease-out;
-        }
-
-        .panel-content {
-            background: rgba(10, 10, 10, 0.8);
-            border: 1px solid #1a1a1a;
-            border-radius: 4px;
-            padding: 16px;
-            font-family: 'Monaco', 'Consolas', monospace;
-            font-size: 13px;
-            line-height: 1.4;
-            color: #ccc;
-            overflow-x: auto;
-            white-space: pre-wrap;
-        }
-
-        @keyframes slideIn {
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes ripple {
-            0% { width: 0; height: 0; opacity: 0.5; }
-            100% { width: 200px; height: 200px; opacity: 0; }
-        }
-    </style>
-        <link rel="stylesheet" href="css/main.css">
+    @keyframes slideIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
 </head>
 <body>
-    <div id="particles-js"></div>
+  <div id="particles-js"></div>
 
-    <aside class="sidebar">
-        <div class="profile-header">
-            <div class="profile-main">
-                <div class="profile-avatar">M</div>
-                <div class="profile-info">
-                    <div class="profile-name" id="usernameDisplay">MixerCheck</div>
-                    <div class="profile-status">beta</div>
-                </div>
-                <button class="logout-btn" id="logoutBtn">Выйти</button>
-            </div>
+  <aside class="sidebar">
+    <div class="profile-header">
+      <div class="profile-main">
+        <div class="profile-avatar" id="avatar">M</div>
+        <div class="profile-info">
+          <div class="profile-name" id="usernameDisplay">Загрузка...</div>
+          <div class="profile-status">beta</div>
         </div>
-
-         <div class="menu-navigation">
-            <div class="menu-section">
-                <div class="section-title">Программы</div>
-                <ul class="menu-items">
-                    <li class="menu-item"><a href="everything.html" class="active"><span class="menu-icon">🔎</span>Everything</a></li>
-                    <li class="menu-item"><a href="Sy.html"><span class="menu-icon">⚙️</span>SystemInformer</a></li>
-                    <li class="menu-item"><a href="PS.html"><span class="menu-icon">💻</span>PowerShell</a></li>
-        </div>
-    </aside>
-
-    <div class="main-content">
-        <div class="content-panels">
-            <div class="panel">
-                <div class="panel-header">
-                    <div class="panel-title">Поиск запрещенных клиентов «Minecraft»</div>
-                    <button class="copy-btn">Копировать</button>
-                </div>
-                <div class="panel-content">ext:.exe;.jar regex:(impact|wurst|bleach[-_]?hack|aristois|huzuni|skill[-_]?client|nodus|inertia|ares|sigma|meteor|atomic|zamorozka|liquid[-_]?bounce|nurik|nursultan|wisefolder|celestial|calestial|celka|expensive|neverhook|excellent|wexside|wild|minced|deadcode|akrien|jigsaw|future|jessica|dreampool|vape|infinity|squad|no[-_]?rules|konas|zeus[-_]?client|rich[-_]?client|ghost[-_]?client|rusher[-_]?hack|thunder[-_]?hack|moon[-_]?hack|winner|nova|exire|doomsday|nightware|ricardo|extazyy|troxill|arbuz|dauntiblyat|rename[-_]?me[-_]?please|edit[-_]?me|takker|faker|xameleon|fuze[-_]?client|wise[-_]?folder|net[-_]?limiter|feather|delta|eclipse|venus|jex|hakari|hush|hach|rogalik|catlavan|haruka|wissend|fluger|sperma|vortex|newcode|astra|britva|bariton|bot|player|freecam|bedrock|hotbar|swap|chest|gumball|tweak|entity|crystal|optimizer|viabackwards|viaforge|viaproxy|hitbox|elytra|xaero|through|mob|auto|place|health|inventory|x[-_]?ray|clean[-_]?cut|smart[-_]?moving|save[-_]?searcher|world[-_]?downloader|trade[-_]?finder|chorus[-_]?find|inv[-_]?move|chunk[-_]?copy|seed[-_]?cracker|diamond[-_]?sim|forge[-_]?hax|step[-_]?up|client[-_]?commands|camera[-_]?utils|cheat[-_]?utils|universal[-_]?mod|swing[-_]?through[-_]?grass)</div>
-            </div>
-
-            <div class="panel">
-                <div class="panel-header">
-                    <div class="panel-title">Поиск запрещенных конфигурационных файлов</div>
-                    <button class="copy-btn">Копировать</button>
-                </div>
-                <div class="panel-content">ext:.txt;.json;.toml;.yml;.cfg;.properties;.ini | folder: dm:last60days regex:(shellbag|bariton|bot|player|freecam|bedrock|hotbar|swap|chest|gumball|tweak|entity|crystal|optimizer|viabackwards|viaforge|viaproxy|hitbox|elytra|xaero|through|mob|auto|place|health|inventory|x[-_]?ray|clean[-_]?cut|smart[-_]?moving|save[-_]?searcher|world[-_]?downloader|trade[-_]?finder|chorus[-_]?find|inv[-_]?move|chunk[-_]?copy|seed[-_]?cracker|diamond[-_]?sim|forge[-_]?hax|step[-_]?up|client[-_]?commands|camera[-_]?utils|cheat[-_]?utils|universal[-_]?mod|swing[-_]?through[-_]?grass)</div>
-            </div>
-
-            <div class="panel">
-                <div class="panel-header">
-                    <div class="panel-title">Поиск vec.dll | MP3 чит-файлов</div>
-                    <button class="copy-btn">Копировать</button>
-                </div>
-                <div class="panel-content">size:30720 utf8content:net/minecraft/util/math/axisalignedbb | size:9400174</div>
-            </div>
-
-            <div class="panel">
-                <div class="panel-header">
-                    <div class="panel-title">Поиск запрещенного ПО</div>
-                    <button class="copy-btn">Копировать</button>
-                </div>
-                <div class="panel-content">*.exe size:1566208 | size:22285824 | size:1010176 | size:22433280 | size:348672 | size:352256 | size:782848 | size:6887424 | size:763392 | size:6111 | size:743424 | size:1767424 | size:823808 | size:18126848 | &lt;size:700kb..5mb utf8content:net/minecraftforge/fml/loading/FMLLoader | glowEsp&gt; | &lt;size:14mb..17mb utf8content:D3D11CreateDeviceAndSwapChain|LoadLibraryA&gt;</div>
-            </div>
-
-            <div class="panel">
-                <div class="panel-header">
-                    <div class="panel-title">Поиск «Doomsday» [Способ 1]</div>
-                    <button class="copy-btn">Копировать</button>
-                </div>
-                <div class="panel-content">*.jar size:21kb-10mb utf8content:net/java/s.class utf8content:net/java/f.class</div>
-            </div>
-
-            <div class="panel">
-                <div class="panel-header">
-                    <div class="panel-title">Поиск «Doomsday» [Способ 2]</div>
-                    <button class="copy-btn">Копировать</button>
-                </div>
-                <div class="panel-content">size:21kb-10mb utf8content:net/java/s.class utf8content:net/java/f.class</div>
-            </div>
-        </div>
+        <button class="logout-btn" id="logoutBtn">Выйти</button>
+      </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
-    <script>
-        // === Проверка авторизации ===
-        document.addEventListener('DOMContentLoaded', () => {
-            const username = localStorage.getItem('username');
-            if (!username) {
-                window.location.href = 'index.html';
-                return;
-            }
+    <div class="menu-navigation">
+      <div class="section-title">Программы</div>
+      <ul class="menu-items">
+        <li class="menu-item"><a href="everything.html" class="active"><span class="menu-icon">🔎</span>Everything</a></li>
+        <li class="menu-item"><a href="Sy.html"><span class="menu-icon">⚙️</span>SystemInformer</a></li>
+        <li class="menu-item"><a href="PS.html"><span class="menu-icon">💻</span>PowerShell</a></li>
+        <li class="menu-item" id="secretLink" style="display:none;">
+          <a href="admin.html"><span class="menu-icon">🛠️</span>Admin Panel</a>
+        </li>
+      </ul>
+    </div>
+  </aside>
 
-            document.getElementById('usernameDisplay').textContent = username[0].toUpperCase() + username.slice(1);
+  <div class="main-content">
+    <div class="panel">
+      <div class="panel-title">Поиск запрещённых клиентов Minecraft</div>
+      <div class="panel-content">
+        ext:.exe;.jar regex:(impact|wurst|aristois|huzuni|inertia|sigma|meteor|liquidbounce|future|vape)
+      </div>
+    </div>
+  </div>
 
-            // Выход по кнопке
-            document.getElementById('logoutBtn').addEventListener('click', () => {
-                localStorage.removeItem('username');
-                window.location.href = 'index.html';
-            });
-        });
+  <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+  <script type="module">
+    import { auth, db } from "./firebase.js";
+    import {
+      signOut,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import {
+      doc,
+      getDoc
+    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-        // === Частицы ===
-        particlesJS('particles-js', {
-            particles: {
-                number: { value: 100, density: { enable: true, value_area: 800 } },
-                color: { value: "#ffffff" },
-                shape: { type: "circle" },
-                opacity: { value: 0.5, random: true },
-                size: { value: 2, random: true },
-                line_linked: { enable: false },
-                move: { enable: true, speed: 1, random: true }
-            },
-            interactivity: {
-                detect_on: "canvas",
-                events: { onhover: { enable: true, mode: "repulse" } }
-            },
-            retina_detect: true
-        });
+    // Проверяем вход
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "index.html";
+        return;
+      }
 
-        // === Копирование ===
-        function setupCopyButtons() {
-            document.querySelectorAll('.copy-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    const text = this.parentElement.nextElementSibling.textContent;
-                    navigator.clipboard.writeText(text).then(() => {
-                        const original = this.textContent;
-                        this.textContent = '✓';
-                        setTimeout(() => this.textContent = original, 1500);
-                    });
-                });
-            });
-        }
+      const userRef = doc(db, "users", user.uid);
+      const snap = await getDoc(userRef);
 
-        document.addEventListener('DOMContentLoaded', setupCopyButtons);
-    </script>
+      if (!snap.exists()) {
+        alert("⚠️ Профиль не найден в базе.");
+        await signOut(auth);
+        window.location.href = "index.html";
+        return;
+      }
+
+      const data = snap.data();
+      const username = data.username || user.email.split("@")[0];
+      document.getElementById("usernameDisplay").textContent = username;
+      document.getElementById("avatar").textContent = username[0].toUpperCase();
+
+      // Проверка доступа к admin.html
+      if (data.access && data.access.includes("admin.html")) {
+        document.getElementById("secretLink").style.display = "flex";
+      }
+
+      // Проверка доступа к текущей странице
+      const currentPage = location.pathname.split("/").pop();
+      if (!data.access.includes(currentPage)) {
+        alert("⛔ У вас нет доступа к этой странице!");
+        window.location.href = "index.html";
+      }
+    });
+
+    // Кнопка выхода
+    document.getElementById("logoutBtn").addEventListener("click", async () => {
+      await signOut(auth);
+      window.location.href = "index.html";
+    });
+
+    // Частицы
+    particlesJS("particles-js", {
+      particles: {
+        number: { value: 100, density: { enable: true, value_area: 800 } },
+        color: { value: "#ffffff" },
+        shape: { type: "circle" },
+        opacity: { value: 0.5, random: true },
+        size: { value: 2, random: true },
+        move: { enable: true, speed: 1, random: true },
+        line_linked: { enable: false }
+      },
+      interactivity: {
+        detect_on: "canvas",
+        events: { onhover: { enable: true, mode: "repulse" } }
+      },
+      retina_detect: true
+    });
+  </script>
 </body>
 </html>
