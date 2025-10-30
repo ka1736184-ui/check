@@ -433,6 +433,85 @@ async function initPage() {
 
 initPage();
 </script>
+<script type="module">
+import { db } from "./firebase.js";
+import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+async function initPage() {
+  const username = localStorage.getItem("username");
+  if (!username) {
+    window.location.href = "index.html";
+    return;
+  }
+
+  try {
+    const usersRef = collection(db, "users");
+    const q = query(usersRef, where("username", "==", username));
+    const snap = await getDocs(q);
+
+    if (snap.empty) {
+      alert("⛔ Пользователь не найден!");
+      localStorage.removeItem("username");
+      window.location.href = "index.html";
+      return;
+    }
+
+    const userData = snap.docs[0].data();
+    const currentPage = location.pathname.split("/").pop();
+
+    // Проверка доступа к текущей странице
+    if (!userData.access.includes(currentPage)) {
+      alert("⛔ У вас нет доступа к этой странице!");
+      window.location.href = "osnova.html";
+      return;
+    }
+
+    // Имя пользователя
+    const nameDisplay = document.getElementById("usernameDisplay");
+    if (nameDisplay) {
+      nameDisplay.textContent = username[0].toUpperCase() + username.slice(1);
+    }
+
+    // === Настройка меню ===
+    const links = {
+      "everything.html": document.querySelector('a[href="everything.html"]')?.closest("li"),
+      "Sy.html": document.querySelector('a[href="Sy.html"]')?.closest("li"),
+      "PS.html": document.querySelector('a[href="PS.html"]')?.closest("li"),
+      "admin.html": document.querySelector('#adminLink'),
+    };
+
+    // Скрываем / показываем пункты меню по доступу
+    Object.entries(links).forEach(([page, li]) => {
+      if (!li) return;
+
+      if (page === "admin.html") {
+        // Админ-панель — только для админов
+        li.style.display = userData.role === "admin" ? "block" : "none";
+      } else {
+        // Прочие страницы — только если в списке access
+        li.style.display = userData.access.includes(page) ? "block" : "none";
+      }
+    });
+
+  } catch (err) {
+    console.error("Ошибка при проверке доступа:", err);
+    alert("Ошибка при проверке доступа");
+    window.location.href = "index.html";
+  }
+
+  // === Кнопка выхода ===
+  const logoutBtn = document.getElementById("logoutBtn");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", () => {
+      localStorage.removeItem("username");
+      window.location.href = "index.html";
+    });
+  }
+}
+
+initPage();
+</script>
 
 </body>
+
 </html>
