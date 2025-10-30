@@ -1,626 +1,142 @@
 <!DOCTYPE html>
 <html lang="ru">
-    <script>
-document.addEventListener("DOMContentLoaded", () => {
-  const username = localStorage.getItem("username");
-  const users = JSON.parse(localStorage.getItem("users")) || [];
-  const user = users.find(u => u.username === username);
-
-  if (!user || !user.access.includes(location.pathname.split("/").pop())) {
-    alert("⛔ У вас нет доступа к этой странице!");
-    window.location.href = "index.html";
-  }
-});
-</script>
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Powershell | MixerCheck</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body 
-        {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: #0a0a0a;
-            color: #ffffff;
-            min-height: 100vh;
-            display: flex;
-            font-weight: 400;
-            position: relative;
-        }
-
-        #particles-js {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            z-index: -1;
-        }
-
-        .sidebar {
-            width: 240px;
-            background: #111111;
-            height: 100vh;
-            position: fixed;
-            left: 0;
-            top: 0;
-            border-right: 1px solid #1a1a1a;
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .profile-header {
-            padding: 24px 20px;
-            border-bottom: 1px solid #1a1a1a;
-        }
-
-        .profile-main {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .profile-avatar {
-            width: 36px;
-            height: 36px;
-            background: #ff6b00;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            font-size: 14px;
-            color: #000;
-        }
-
-        .profile-info { flex: 1; }
-
-        .profile-name {
-            font-size: 15px;
-            font-weight: 600;
-            color: #fff;
-            margin-bottom: 2px;
-        }
-
-        .profile-status {
-            font-size: 12px;
-            color: #666;
-        }
-
-        .logout-btn {
-            background: #1a1a1a;
-            border: 1px solid #222;
-            color: #999;
-            padding: 6px 10px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: 0.2s;
-        }
-
-        .logout-btn:hover {
-            background: #222;
-            color: #fff;
-        }
-
-        .menu-navigation {
-            flex: 1;
-            padding: 0;
-        }
-
-        .menu-section { padding: 16px 0; }
-
-        .section-title {
-            color: #555;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding: 0 20px 8px 20px;
-        }
-
-        .menu-items { list-style: none; }
-
-        .menu-item a {
-            display: flex;
-            align-items: center;
-            padding: 10px 20px;
-            color: #999;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 400;
-            transition: all 0.15s ease;
-        }
-
-        .menu-item a:hover {
-            color: #fff;
-            background: #1a1a1a;
-        }
-
-        .menu-item a.active {
-            color: #ff6b00;
-            background: #1a1a1a;
-            font-weight: 500;
-        }
-
-        .menu-icon {
-            width: 16px;
-            margin-right: 12px;
-            text-align: center;
-            font-size: 13px;
-        }
-
-        .main-content {
-            flex: 1;
-            margin-left: 240px;
-            padding: 24px;
-            min-height: 100vh;
-            overflow-y: auto;
-        }
-
-        .content-panels {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .panel {
-            background: rgba(17, 17, 17, 0.9);
-            border: 1px solid #1a1a1a;
-            border-radius: 8px;
-            padding: 20px;
-            backdrop-filter: blur(10px);
-            opacity: 0;
-            transform: translateY(20px);
-            animation: slideIn 0.5s forwards;
-        }
-
-        .panel:last-child { margin-bottom: 0; }
-
-        .panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-
-        .panel-title {
-            font-size: 15px;
-            font-weight: 500;
-            color: #fff;
-        }
-
-        .copy-btn {
-            background: #1a1a1a;
-            color: #999;
-            border: 1px solid #1a1a1a;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 400;
-            transition: all 0.15s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .copy-btn:hover { background: #222; color: #fff; }
-
-        .copy-btn:active::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 107, 0, 0.3);
-            transform: translate(-50%, -50%);
-            animation: ripple 0.6s ease-out;
-        }
-
-        .panel-content {
-            background: rgba(10, 10, 10, 0.8);
-            border: 1px solid #1a1a1a;
-            border-radius: 4px;
-            padding: 16px;
-            font-family: 'Monaco', 'Consolas', monospace;
-            font-size: 13px;
-            line-height: 1.4;
-            color: #ccc;
-            overflow-x: auto;
-            white-space: pre-wrap;
-        }
-
-        @keyframes slideIn {
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes ripple {
-            0% { width: 0; height: 0; opacity: 0.5; }
-            100% { width: 200px; height: 200px; opacity: 0; }
-        }
-    </style>
-        <link rel="stylesheet" href="css/main.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SystemInformer | MixerCheck</title>
+  <link rel="stylesheet" href="css/main.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0a0a0a;
+      color: #fff;
+      margin: 0;
+      display: flex;
+    }
+    .sidebar {
+      width: 240px;
+      background: #111;
+      border-right: 1px solid #1a1a1a;
+      height: 100vh;
+      position: fixed;
+      left: 0;
+      top: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .profile-header { padding: 20px; border-bottom: 1px solid #1a1a1a; }
+    .profile-avatar {
+      width: 36px; height: 36px;
+      background: #ff6b00; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      color: #000; font-weight: 700;
+    }
+    .logout-btn {
+      background: #1a1a1a; border: 1px solid #222; color: #ccc;
+      padding: 6px 10px; border-radius: 6px; cursor: pointer;
+      font-size: 12px; margin-left: auto;
+    }
+    .logout-btn:hover { background: #222; color: #fff; }
+    .menu-section { padding: 16px 0; }
+    .section-title {
+      color: #555; font-size: 11px; text-transform: uppercase;
+      padding: 0 20px 8px 20px;
+    }
+    .menu-items { list-style: none; margin: 0; padding: 0; }
+    .menu-item a {
+      display: flex; align-items: center;
+      padding: 10px 20px; text-decoration: none; color: #999;
+      transition: 0.2s;
+    }
+    .menu-item a:hover { color: #fff; background: #1a1a1a; }
+    .menu-item a.active { color: #ff6b00; background: #1a1a1a; }
+    .main-content { margin-left: 240px; padding: 30px; }
+  </style>
 </head>
 <body>
-    <script type="module">
-import { db } from "./firebase.js";
-import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-
-const username = localStorage.getItem("username");
-if (!username) {
-  window.location.href = "index.html";
-}
-
-try {
-  const usersRef = collection(db, "users");
-  const q = query(usersRef, where("username", "==", username));
-  const snap = await getDocs(q);
-
-  if (snap.empty) {
-    alert("⛔ Пользователь не найден!");
-    localStorage.removeItem("username");
-    window.location.href = "index.html";
-  } else {
-    const userData = snap.docs[0].data();
-    const page = location.pathname.split("/").pop();
-    if (!userData.access.includes(page)) {
-      alert("⛔ У вас нет доступа к этой странице!");
-      window.location.href = "osnova.html";
-    } else {
-      document.getElementById("usernameDisplay").textContent = username;
-    }
-  }
-} catch (err) {
-  console.error("Ошибка при проверке доступа:", err);
-  alert("Ошибка при проверке доступа");
-  window.location.href = "index.html";
-}
-</script>
-
-    <div id="particles-js"></div>
-
-    <aside class="sidebar">
-        <div class="profile-header">
-            <div class="profile-main">
-                <div class="profile-avatar">M</div>
-                <div class="profile-info">
-                    <div class="profile-name" id="usernameDisplay">MixerCheck</div>
-                    <div class="profile-status">beta</div>
-                </div>
-                <button class="logout-btn" id="logoutBtn">Выйти</button>
-            </div>
+  <aside class="sidebar">
+    <div class="profile-header">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div class="profile-avatar" id="avatar">S</div>
+        <div>
+          <div id="usernameDisplay">User</div>
+          <div style="font-size:12px; color:#777;">beta</div>
         </div>
-
-           <div class="menu-navigation">
-            <div class="menu-section">
-                <div class="section-title">Программы</div>
-                <ul class="menu-items">
-                                            <li class="menu-item"><a href="osnova.html"><span class="menu-icon"></span>Основа</a></li>
-
-                    <li class="menu-item"><a href="everything.html" ><span class="menu-icon">🔎</span>Everything</a></li>
-                    <li class="menu-item"><a href="Sy.html" class="active"><span class="menu-icon">⚙️</span>SystemInformer</a></li>
-                    <li class="menu-item"><a href="PS.html"><span class="menu-icon">💻</span>PowerShell</a></li>
-                <li class="menu-item" id="adminLink" style="display: none;">
-  <a href="admin.html"><span class="menu-icon">🛠</span>Админ-панель</a>
-</li>
-
-                </ul>
-            </div>
-
-            <div class="menu-section">
-    </aside>
-
-<div class="main-content">
-    <div class="content-panels">
-        <div class="panel">
-            <div class="panel-header">
-                <div class="panel-title">Анализ процесса «javaw»</div>
-                <button class="copy-btn">Копировать</button>
-            </div>
-
-            <div class="panel-content">
-ASM:|H\(q=Zf@wDLF\?/d\?D&|x/fC5K<;i/f6I\-w\[|SMe;8#xj0s<\+pyE&bEZ\|cR_A\^yvDVSXDYPQp\]|cortex|r\|\~\}Xnpo\>\]_\^'@BA|WYX\-gih\>rssK\{\|\|\[|net/minecraft/client/renderer/RenderState\$\$Lambda\+0x000001e7d29d9930|7ba\{vsdkvhd\}o\}w|Hba\{vsdkvhduy\{q|Fba\{vsdkvhdpxhz|Aba\{vsdkvhdnxhv|x/mo/c|Self Destruct|blessed|stubborn\.website|cortex|E S P|Hitbox:|Reach:|chs/Main|chs/Profiler|net\.minecraftforge\.ASMEventHandler\.31\.wait\(l,\sint\)|magicthein|radioegor146|BaoBab:|b/time|chs/90|by\.kayn|ZDCoder|dreampool|TriggerBOT|forge\.commons\.|sjuuOiqotmus|bushroot|bushren
-            </div>
-
-            <p style="margin-top:12px; color:#aaa; font-size:13px; line-height:1.5; white-space:pre-wrap;">
-<span style="color:#fff; font-weight:600;">Forge ASM</span>  
-Комментарий: просматриваем наличие запрещенных модов в ASM:.
-
-<span style="color:#fff; font-weight:600;">Doomsday</span>  
-- H(q=Zf@wDLF?/d?D&  
-- x/fC5K<;i/f6I-w[  
-- SMe;8#xj0s<+pyE&bEZ  
-- cR_A^yvDVSXDYPQp]  
-Комментарий: бан, если нашло что-то из этого.
-
-<span style="color:#fff; font-weight:600;">Cortex</span>  
-- cortex  
-Комментарий: нашло «api.cortexclient.com» — БАН.
-
-<span style="color:#fff; font-weight:600;">Troxill</span>  
-Free:  
-- 7ba{vsdkvhd}o}w  
-- Hba{vsdkvhduy{q  
-- Fba{vsdkvhdpxhz  
-- Aba{vsdkvhdnxhv  
-Legit:  
-- r|~}Xnpo>]_^'@BA  
-- WYX-gih>rssK{||[  
-Beta:  
-- net/minecraft/client/renderer/RenderState$$Lambda+0x000001e7d29d9930  
-Комментарий: бан, если нашло что-то из этого.
-
-<span style="color:#fff; font-weight:600;">Squad Client Free</span>  
-- x/mo/c  
-Комментарий: <a href="https://imgur.com/edhnvrc" target="_blank" style="color:#ff6b00; text-decoration:none;">https://imgur.com/edhnvrc</a> — БАН.
-
-<span style="color:#fff; font-weight:600;">Francium</span>  
-- Self Destruct  
-Комментарий: БАН — <a href="https://scrhub.ru/i/AS3fX" target="_blank" style="color:#ff6b00; text-decoration:none;">scrhub.ru/i/AS3fX</a>,  
-НЕ БАН — <a href="https://scrhub.ru/i/ASRnz" target="_blank" style="color:#ff6b00; text-decoration:none;">scrhub.ru/i/ASRnz</a>.
-
-<span style="color:#fff; font-weight:600;">Blessed Crack</span>  
-- blessed  
-Комментарий: БАН — <a href="https://scrhub.ru/i/ASUvT" target="_blank" style="color:#ff6b00; text-decoration:none;">scrhub.ru/i/ASUvT</a>.
-
-<span style="color:#fff; font-weight:600;">MP3 хиты</span>  
-- stubborn.website  
-Комментарий: бан, если нашло что-то.
-
-<span style="color:#fff; font-weight:600;">Cortex Legit</span>  
-- Cortex  
-Комментарий: БАН — <a href="https://scrhub.ru/i/AS4Yt" target="_blank" style="color:#ff6b00; text-decoration:none;">scrhub.ru/i/AS4Yt</a>.
-
-<span style="color:#fff; font-weight:600;">Cortex ProstoCraft</span>  
-- E S P  
-Комментарий: БАН — <a href="https://scrhub.ru/i/A5xKa" target="_blank" style="color:#ff6b00; text-decoration:none;">scrhub.ru/i/A5xKa</a>.
-
-<span style="color:#fff; font-weight:600;">Vertzah Client</span>  
-- Hitbox:  
-- Reach:  
-Комментарий: бан, если нашло что-то из этого — <a href="https://scrhub.ru/i/A5qPX" target="_blank" style="color:#ff6b00; text-decoration:none;">scrhub.ru/i/A5qPX</a>.
-
-<span style="color:#fff; font-weight:600;">Инжект хитбоксы</span>  
-- chs/Main  
-- chs/Profiler  
-- net.minecraftforge.ASMEventHandler.31.wait(long, int)  
-Комментарий: бан, если нашло что-то из этого — <a href="https://scrhub.ru/i/A5HH2" target="_blank" style="color:#ff6b00; text-decoration:none;">scrhub.ru/i/A5HH2</a>.  
-Если нашло chs/Main ищем в Everything «путь к используемым сейчас модам *.jar content:chs/main» — что-то нашлось → НЕ БАН.  
-Пример: <a href="https://scrhub.ru/i/iykQ8z" target="_blank" style="color:#ff6b00; text-decoration:none;">scrhub.ru/i/iykQ8z</a>
-
-<span style="color:#fff; font-weight:600;">Конвертор .jar → .dll</span>  
-- magicthein  
-- radioegor146  
-Комментарий: бан, если нашло что-то из этого.
-
-<span style="color:#fff; font-weight:600;">LabyMod хитбоксы</span>  
-- BaoBab:  
-- b/time  
-Комментарий: бан, если нашло что-то из этого. (если нашло второй — должно быть именно b/time)
-
-<span style="color:#fff; font-weight:600;">AutoBuy v2</span>  
-- chs/90  
-Комментарий: бан, если нашло что-то.
-
-<span style="color:#fff; font-weight:600;">Чит-Моды</span>  
-- by.kayn  
-Комментарий: бан, если нашло что-то.
-
-<span style="color:#fff; font-weight:600;">Чит на LunarClient</span>  
-- ZDCoder  
-Комментарий: бан, если нашло что-то.
-
-<span style="color:#fff; font-weight:600;">Dreampool</span>  
-- dreampool  
-- TriggerBOT  
-- forge.commons.  
-Комментарий: бан, если нашло что-то из этого.
-
-<span style="color:#fff; font-weight:600;">Чит</span>  
-- sjuuOiqotmus  
-Комментарий: бан, если нашло что-то.
-
-<span style="color:#fff; font-weight:600;">Читы от Bushroot</span>  
-- bushroot / bushren  
-Комментарий: бан, если нашло что-то.
-            </p>
-        </div>
-    </div>
-</div>
-
-            </div>
-
+        <button class="logout-btn" id="logoutBtn">Выйти</button>
+      </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
-    <script>
-        // === Проверка авторизации ===
-        document.addEventListener('DOMContentLoaded', () => {
-            const username = localStorage.getItem('username');
-            if (!username) {
-                window.location.href = 'index.html';
-                return;
-            }
+    <div class="menu-navigation">
+      <div class="menu-section">
+        <div class="section-title">Программы</div>
+        <ul class="menu-items">
+          <li class="menu-item"><a href="everything.html"><span class="menu-icon">🔎</span>Everything</a></li>
+          <li class="menu-item"><a href="Sy.html" class="active"><span class="menu-icon">⚙️</span>SystemInformer</a></li>
+          <li class="menu-item"><a href="PS.html"><span class="menu-icon">💻</span>PowerShell</a></li>
+          <li class="menu-item" id="adminLink"><a href="admin.html"><span class="menu-icon">🛠</span>Админ-панель</a></li>
+        </ul>
+      </div>
+    </div>
+  </aside>
 
-            document.getElementById('usernameDisplay').textContent = username[0].toUpperCase() + username.slice(1);
+  <div class="main-content">
+    <h1>SystemInformer</h1>
+    <p>Здесь будет функционал SystemInformer.</p>
+  </div>
 
-            // Выход по кнопке
-            document.getElementById('logoutBtn').addEventListener('click', () => {
-                localStorage.removeItem('username');
-                window.location.href = 'index.html';
-            });
-        });
+  <script type="module">
+  import { db } from "./firebase.js";
+  import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-        // === Частицы ===
-        particlesJS('particles-js', {
-            particles: {
-                number: { value: 100, density: { enable: true, value_area: 800 } },
-                color: { value: "#ffffff" },
-                shape: { type: "circle" },
-                opacity: { value: 0.5, random: true },
-                size: { value: 2, random: true },
-                line_linked: { enable: false },
-                move: { enable: true, speed: 1, random: true }
-            },
-            interactivity: {
-                detect_on: "canvas",
-                events: { onhover: { enable: true, mode: "repulse" } }
-            },
-            retina_detect: true
-        });
+  async function initPage() {
+    const username = localStorage.getItem("username");
+    if (!username) return (window.location.href = "index.html");
 
-        // === Копирование ===
-        function setupCopyButtons() {
-            document.querySelectorAll('.copy-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    const text = this.parentElement.nextElementSibling.textContent;
-                    navigator.clipboard.writeText(text).then(() => {
-                        const original = this.textContent;
-                        this.textContent = '✓';
-                        setTimeout(() => this.textContent = original, 1500);
-                    });
-                });
-            });
-        }
+    try {
+      const q = query(collection(db, "users"), where("username", "==", username));
+      const snap = await getDocs(q);
 
-        document.addEventListener('DOMContentLoaded', setupCopyButtons);
-    </script>
-    <script type="module">
-import { db } from "./firebase.js";
-import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-
-async function initPage() {
-  const username = localStorage.getItem("username");
-  if (!username) {
-    window.location.href = "index.html";
-    return;
-  }
-
-  try {
-    const usersRef = collection(db, "users");
-    const q = query(usersRef, where("username", "==", username));
-    const snap = await getDocs(q);
-
-    if (snap.empty) {
-      alert("⛔ Пользователь не найден!");
-      localStorage.removeItem("username");
-      window.location.href = "index.html";
-      return;
-    }
-
-    const userData = snap.docs[0].data();
-    const currentPage = location.pathname.split("/").pop();
-
-    if (!userData.access.includes(currentPage)) {
-      alert("⛔ У вас нет доступа к этой странице!");
-      window.location.href = "osnova.html";
-      return;
-    }
-
-    document.getElementById("usernameDisplay").textContent =
-      username[0].toUpperCase() + username.slice(1);
-
-    if (userData.role === "admin") {
-      document.getElementById("adminLink").style.display = "block";
-    }
-  } catch (err) {
-    console.error("Ошибка при проверке доступа:", err);
-    alert("Ошибка при проверке доступа");
-    window.location.href = "index.html";
-  }
-
-  document.getElementById("logoutBtn").addEventListener("click", () => {
-    localStorage.removeItem("username");
-    window.location.href = "index.html";
-  });
-}
-
-initPage();
-</script>
-<script type="module">
-import { db } from "./firebase.js";
-import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-
-async function initPage() {
-  const username = localStorage.getItem("username");
-  if (!username) {
-    window.location.href = "index.html";
-    return;
-  }
-
-  try {
-    const usersRef = collection(db, "users");
-    const q = query(usersRef, where("username", "==", username));
-    const snap = await getDocs(q);
-
-    if (snap.empty) {
-      alert("⛔ Пользователь не найден!");
-      localStorage.removeItem("username");
-      window.location.href = "index.html";
-      return;
-    }
-
-    const userData = snap.docs[0].data();
-    const currentPage = location.pathname.split("/").pop();
-
-    // Проверка доступа к текущей странице
-    if (!userData.access.includes(currentPage)) {
-      alert("⛔ У вас нет доступа к этой странице!");
-      window.location.href = "osnova.html";
-      return;
-    }
-
-    // Имя пользователя
-    const nameDisplay = document.getElementById("usernameDisplay");
-    if (nameDisplay) {
-      nameDisplay.textContent = username[0].toUpperCase() + username.slice(1);
-    }
-
-    // === Настройка меню ===
-    const links = {
-      "everything.html": document.querySelector('a[href="everything.html"]')?.closest("li"),
-      "Sy.html": document.querySelector('a[href="Sy.html"]')?.closest("li"),
-      "PS.html": document.querySelector('a[href="PS.html"]')?.closest("li"),
-      "admin.html": document.querySelector('#adminLink'),
-    };
-
-    // Скрываем / показываем пункты меню по доступу
-    Object.entries(links).forEach(([page, li]) => {
-      if (!li) return;
-
-      if (page === "admin.html") {
-        // Админ-панель — только для админов
-        li.style.display = userData.role === "admin" ? "block" : "none";
-      } else {
-        // Прочие страницы — только если в списке access
-        li.style.display = userData.access.includes(page) ? "block" : "none";
+      if (snap.empty) {
+        alert("⛔ Пользователь не найден!");
+        localStorage.removeItem("username");
+        return (window.location.href = "index.html");
       }
-    });
 
-  } catch (err) {
-    console.error("Ошибка при проверке доступа:", err);
-    alert("Ошибка при проверке доступа");
-    window.location.href = "index.html";
-  }
+      const user = snap.docs[0].data();
+      const current = location.pathname.split("/").pop();
 
-  // === Кнопка выхода ===
-  const logoutBtn = document.getElementById("logoutBtn");
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", () => {
+      // Проверка доступа
+      if (!user.access.includes(current)) {
+        alert("⛔ У вас нет доступа к этой странице!");
+        return (window.location.href = "osnova.html");
+      }
+
+      document.getElementById("usernameDisplay").textContent = username;
+      document.getElementById("avatar").textContent = username[0].toUpperCase();
+
+      // Скрытие/показ ссылок
+      const pages = ["everything.html", "Sy.html", "PS.html"];
+      for (const p of pages) {
+        const li = document.querySelector(`a[href="${p}"]`)?.closest("li");
+        if (li) li.style.display = user.access.includes(p) ? "block" : "none";
+      }
+
+      const adminLi = document.getElementById("adminLink");
+      adminLi.style.display = user.role === "admin" ? "block" : "none";
+
+    } catch (err) {
+      console.error(err);
+      alert("Ошибка проверки доступа");
+      window.location.href = "index.html";
+    }
+
+    document.getElementById("logoutBtn").addEventListener("click", () => {
       localStorage.removeItem("username");
       window.location.href = "index.html";
     });
   }
-}
 
-initPage();
-</script>
-
+  initPage();
+  </script>
 </body>
 </html>

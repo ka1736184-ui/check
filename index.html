@@ -1,92 +1,109 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <title>MixerCheck | Вход</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Вход | MixerCheck</title>
   <style>
-    * { box-sizing: border-box; }
     body {
       background: radial-gradient(circle at bottom, #5b1fa3 0%, #000 80%);
-      font-family: "Segoe UI", sans-serif;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
       color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex; align-items: center; justify-content: center;
+      height: 100vh; flex-direction: column;
     }
-
-    .container {
-      background: rgba(17, 17, 17, 0.95);
-      padding: 40px;
-      border-radius: 16px;
-      box-shadow: 0 0 25px rgba(255, 107, 0, 0.2);
-      width: 360px;
-      text-align: center;
-      animation: fadeIn 0.6s ease forwards;
-    }
-
-    h1 {
-      color: #ff6b00;
-      margin-bottom: 10px;
-      font-weight: 700;
-    }
-
     input {
-      width: 100%;
-      padding: 12px;
       margin: 8px 0;
-      border-radius: 8px;
+      padding: 10px;
+      width: 220px;
+      border-radius: 6px;
       border: none;
-      background: #111;
-      color: #fff;
-      font-size: 15px;
-      transition: 0.3s;
-    }
-
-    input:focus {
       outline: none;
-      box-shadow: 0 0 6px #ff6b00;
     }
-
     button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      border-radius: 6px;
       background: #ff6b00;
       color: #000;
-      font-weight: 600;
       border: none;
-      border-radius: 8px;
-      padding: 12px;
-      width: 100%;
       cursor: pointer;
-      margin-top: 10px;
+      font-weight: 600;
       transition: 0.2s;
     }
-    button:hover { background: #ff812a; }
-
-    .toggle {
-      color: #aaa;
-      font-size: 14px;
-      margin-top: 10px;
-      cursor: pointer;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+    button:hover {
+      background: #ff7f1a;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>MixerCheck</h1>
-    <div id="formContainer">
-      <input id="username" type="text" placeholder="Логин" required />
-      <input id="password" type="password" placeholder="Пароль" required />
-      <button id="loginBtn">Войти</button>
-      <p class="toggle" id="toggleForm">Нет аккаунта? Зарегистрироваться</p>
-    </div>
-  </div>
+  <h1>MixerCheck</h1>
+  <input id="username" placeholder="Логин">
+  <input id="password" placeholder="Пароль" type="password">
+  <button id="loginBtn">Войти</button>
+  <button id="regBtn">Зарегистрироваться</button>
 
-  <script type="module" src="./app.js"></script>
+  <script type="module">
+  import { db } from "./firebase.js";
+  import { collection, query, where, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+  const usersRef = collection(db, "users");
+  const usernameInput = document.getElementById("username");
+  const passwordInput = document.getElementById("password");
+
+  // === Вход ===
+  document.getElementById("loginBtn").addEventListener("click", async () => {
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value.trim();
+
+    if (!username || !password) return alert("Введите логин и пароль");
+
+    try {
+      const q = query(usersRef, where("username", "==", username), where("password", "==", password));
+      const snap = await getDocs(q);
+
+      if (snap.empty) return alert("❌ Неверный логин или пароль");
+
+      localStorage.setItem("username", username);
+      window.location.href = "osnova.html";
+    } catch (err) {
+      console.error("Ошибка входа:", err);
+      alert("Ошибка при входе");
+    }
+  });
+
+  // === Регистрация ===
+  document.getElementById("regBtn").addEventListener("click", async () => {
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value.trim();
+
+    if (!username || !password) return alert("Введите логин и пароль");
+
+    try {
+      const q = query(usersRef, where("username", "==", username));
+      const snap = await getDocs(q);
+      if (!snap.empty) return alert("⚠️ Такой логин уже существует");
+
+      await addDoc(usersRef, {
+        username,
+        password,
+        role: "user",
+        access: ["osnova.html"]
+      });
+
+      localStorage.setItem("username", username);
+      alert("✅ Регистрация успешна!");
+      window.location.href = "osnova.html";
+    } catch (err) {
+      console.error("Ошибка регистрации:", err);
+      alert("Ошибка при регистрации");
+    }
+  });
+
+  // === Авто-переход, если уже вошёл ===
+  if (localStorage.getItem("username")) {
+    window.location.href = "osnova.html";
+  }
+  </script>
 </body>
 </html>
