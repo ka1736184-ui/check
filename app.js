@@ -17,7 +17,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const loginBtn = document.getElementById("loginBtn");
   const toggleBtn = document.getElementById("toggleForm");
 
-  // --- Переключение между входом и регистрацией ---
   toggleBtn.addEventListener("click", () => {
     isRegister = !isRegister;
     loginBtn.textContent = isRegister ? "Зарегистрироваться" : "Войти";
@@ -26,7 +25,6 @@ document.addEventListener("DOMContentLoaded", () => {
       : "Нет аккаунта? Зарегистрироваться";
   });
 
-  // --- Вход / регистрация ---
   loginBtn.addEventListener("click", async () => {
     const username = usernameInput.value.trim();
     const password = passwordInput.value.trim();
@@ -50,14 +48,15 @@ document.addEventListener("DOMContentLoaded", () => {
         const userId = crypto.randomUUID();
         await setDoc(doc(db, "users", userId), {
           username,
-          password, // ⚠️ Для теста, не для продакшена!
-          access: ["everything.html", "Sy.html", "PS.html"],
+          password,
+          access: ["osnova.html"],
+          role: "user",
           createdAt: serverTimestamp(),
         });
 
         localStorage.setItem("username", username);
         alert("✅ Аккаунт создан!");
-        window.location.href = "everything.html";
+        window.location.href = "osnova.html";
       } else {
         if (snapshot.empty) {
           alert("❌ Пользователь не найден!");
@@ -71,7 +70,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         localStorage.setItem("username", username);
-        window.location.href = "everything.html";
+        window.location.href = "osnova.html";
       }
     } catch (err) {
       console.error("Ошибка Firebase:", err);

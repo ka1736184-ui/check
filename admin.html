@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Админ-панель | MixerCheck</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      background: #0a0a0a;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 40px;
+    }
+    h1 {
+      color: #ff6b00;
+      margin-bottom: 10px;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    input, select {
+      background: #111;
+      border: 1px solid #333;
+      color: #fff;
+      padding: 8px 10px;
+      border-radius: 6px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      background: #111;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #222;
+    }
+    th {
+      background: #1a1a1a;
+      color: #ff6b00;
+    }
+    tr:hover {
+      background: #1a1a1a;
+    }
+    button {
+      background: #ff6b00;
+      border: none;
+      color: #000;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      margin-right: 4px;
+    }
+    button:hover {
+      background: #ff812a;
+    }
+    .logout {
+      background: #222;
+      color: #fff;
+      margin-top: 10px;
+    }
+    .delete {
+      background: #c0392b;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <h1>Админ-панель MixerCheck</h1>
+  <div class="controls">
+    <input type="text" id="searchInput" placeholder="🔍 Поиск по логину" />
+    <select id="roleFilter">
+      <option value="all">Все</option>
+      <option value="user">Пользователи</option>
+      <option value="admin">Админы</option>
+    </select>
+    <button id="logoutBtn" class="logout">Выйти</button>
+  </div>
+
+  <table id="usersTable">
+    <thead>
+      <tr>
+        <th>Логин</th>
+        <th>Доступ</th>
+        <th>Роль</th>
+        <th>Действия</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script type="module">
+    import { db } from "./firebase.js";
+    import {
+      collection, getDocs, updateDoc, doc, deleteDoc
+    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+    const username = localStorage.getItem("username");
+    if (!username) {
+      window.location.href = "index.html";
+    }
+
+    const usersRef = collection(db, "users");
+    const snap = await getDocs(usersRef);
+    const me = snap.docs.find(d => d.data().username === username);
+
+    if (!me || me.data().role !== "admin") {
+      alert("⛔ У вас нет доступа к этой странице!");
+      window.location.href = "osnova.html";
+    }
+
+    const table = document.querySelector("#usersTable tbody");
+    const searchInput = document.getElementById("searchInput");
+    const roleFilter = document.getElementById("roleFilter");
+
+    async function loadUsers() {
+      table.innerHTML = "";
+      const querySnapshot = await getDocs(usersRef);
+      const users = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      const filtered = users.filter(u => {
+        const bySearch = u.username.toLowerCase().includes(searchInput.value.toLowerCase());
+        const byRole = roleFilter.value === "all" || u.role === roleFilter.value;
+        return bySearch && byRole;
+      });
+
+      filtered.forEach(user => {
+        const row = document.createElement("tr");
+
+        const accessInput = document.createElement("input");
+        accessInput.value = user.access ? user.access.join(", ") : "";
+
+        const roleSelect = document.createElement("select");
+        ["user", "admin"].forEach(role => {
+          const opt = document.createElement("option");
+          opt.value = role;
+          opt.textContent = role;
+          if (user.role === role) opt.selected = true;
+          roleSelect.appendChild(opt);
+        });
+
+        const saveBtn = document.createElement("button");
+        saveBtn.textContent = "💾";
+        saveBtn.addEventListener("click", async () => {
+          const newAccess = accessInput.value.split(",").map(s => s.trim()).filter(Boolean);
+          const newRole = roleSelect.value;
+          await updateDoc(doc(db, "users", user.id), {
+            access: newAccess,
+            role: newRole
+          });
+          alert("✅ Сохранено!");
+          loadUsers();
+        });
+
+        const delBtn = document.createElement("button");
+        delBtn.textContent = "🗑";
+        delBtn.classList.add("delete");
+        delBtn.addEventListener("click", async () => {
+          if (confirm("Удалить пользователя?")) {
+            await deleteDoc(doc(db, "users", user.id));
+            loadUsers();
+          }
+        });
+
+        row.innerHTML = `
+          <td>${user.username}</td>
+          <td></td>
+          <td></td>
+          <td></td>
+        `;
+        row.children[1].appendChild(accessInput);
+        row.children[2].appendChild(roleSelect);
+        row.children[3].append(saveBtn, delBtn);
+        table.appendChild(row);
+      });
+    }
+
+    loadUsers();
+
+    searchInput.addEventListener("input", loadUsers);
+    roleFilter.addEventListener("change", loadUsers);
+
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      localStorage.removeItem("username");
+      window.location.href = "index.html";
+    });
+  </script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-﻿﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
@@ -142,41 +142,6 @@
   </style>
 </head>
 <body>
-  <script type="module">
-import { db } from "./firebase.js";
-import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-
-const username = localStorage.getItem("username");
-if (!username) {
-  window.location.href = "index.html";
-}
-
-try {
-  const usersRef = collection(db, "users");
-  const q = query(usersRef, where("username", "==", username));
-  const snap = await getDocs(q);
-
-  if (snap.empty) {
-    alert("⛔ Пользователь не найден!");
-    localStorage.removeItem("username");
-    window.location.href = "index.html";
-  } else {
-    const userData = snap.docs[0].data();
-    const page = location.pathname.split("/").pop();
-    if (!userData.access.includes(page)) {
-      alert("⛔ У вас нет доступа к этой странице!");
-      window.location.href = "osnova.html";
-    } else {
-      document.getElementById("usernameDisplay").textContent = username;
-    }
-  }
-} catch (err) {
-  console.error("Ошибка при проверке доступа:", err);
-  alert("Ошибка при проверке доступа");
-  window.location.href = "index.html";
-}
-</script>
-
   <div id="particles-js"></div>
 
   <aside class="sidebar">
@@ -206,14 +171,6 @@ try {
     </div>
   </aside>
 
-  <div class="main-content">
-    <div class="panel">
-      <div class="panel-title">Поиск запрещённых клиентов Minecraft</div>
-      <div class="panel-content">
-        ext:.exe;.jar regex:(impact|wurst|aristois|huzuni|inertia|sigma|meteor|liquidbounce|future|vape)
-      </div>
-    </div>
-  </div>
 
   <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
   <script type="module">

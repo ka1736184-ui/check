@@ -248,6 +248,41 @@ document.addEventListener("DOMContentLoaded", () => {
         <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
+    <script type="module">
+import { db } from "./firebase.js";
+import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+const username = localStorage.getItem("username");
+if (!username) {
+  window.location.href = "index.html";
+}
+
+try {
+  const usersRef = collection(db, "users");
+  const q = query(usersRef, where("username", "==", username));
+  const snap = await getDocs(q);
+
+  if (snap.empty) {
+    alert("⛔ Пользователь не найден!");
+    localStorage.removeItem("username");
+    window.location.href = "index.html";
+  } else {
+    const userData = snap.docs[0].data();
+    const page = location.pathname.split("/").pop();
+    if (!userData.access.includes(page)) {
+      alert("⛔ У вас нет доступа к этой странице!");
+      window.location.href = "osnova.html";
+    } else {
+      document.getElementById("usernameDisplay").textContent = username;
+    }
+  }
+} catch (err) {
+  console.error("Ошибка при проверке доступа:", err);
+  alert("Ошибка при проверке доступа");
+  window.location.href = "index.html";
+}
+</script>
+
     <div id="particles-js"></div>
 
     <aside class="sidebar">
@@ -269,6 +304,10 @@ document.addEventListener("DOMContentLoaded", () => {
           <li class="menu-item"><a href="everything.html" ><span class="menu-icon">🔎</span>Everything</a></li>
                     <li class="menu-item"><a href="Sy.html" class="active"><span class="menu-icon">⚙️</span>SystemInformer</a></li>
                     <li class="menu-item"><a href="PS.html"><span class="menu-icon">💻</span>PowerShell</a></li>
+                <li class="menu-item" id="adminLink" style="display: none;">
+  <a href="admin.html"><span class="menu-icon">🛠</span>Админ-панель</a>
+</li>
+
                 </ul>
             </div>
 
@@ -450,5 +489,58 @@ Beta:
 
         document.addEventListener('DOMContentLoaded', setupCopyButtons);
     </script>
+    <script type="module">
+import { db } from "./firebase.js";
+import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+async function initPage() {
+  const username = localStorage.getItem("username");
+  if (!username) {
+    window.location.href = "index.html";
+    return;
+  }
+
+  try {
+    const usersRef = collection(db, "users");
+    const q = query(usersRef, where("username", "==", username));
+    const snap = await getDocs(q);
+
+    if (snap.empty) {
+      alert("⛔ Пользователь не найден!");
+      localStorage.removeItem("username");
+      window.location.href = "index.html";
+      return;
+    }
+
+    const userData = snap.docs[0].data();
+    const currentPage = location.pathname.split("/").pop();
+
+    if (!userData.access.includes(currentPage)) {
+      alert("⛔ У вас нет доступа к этой странице!");
+      window.location.href = "osnova.html";
+      return;
+    }
+
+    document.getElementById("usernameDisplay").textContent =
+      username[0].toUpperCase() + username.slice(1);
+
+    if (userData.role === "admin") {
+      document.getElementById("adminLink").style.display = "block";
+    }
+  } catch (err) {
+    console.error("Ошибка при проверке доступа:", err);
+    alert("Ошибка при проверке доступа");
+    window.location.href = "index.html";
+  }
+
+  document.getElementById("logoutBtn").addEventListener("click", () => {
+    localStorage.removeItem("username");
+    window.location.href = "index.html";
+  });
+}
+
+initPage();
+</script>
+
 </body>
 </html>
