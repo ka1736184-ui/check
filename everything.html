@@ -1,253 +1,42 @@
 ﻿﻿<!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Everything | MixerCheck</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+  <link rel="stylesheet" href="style.css">
+  <script type="module">
+    import { db } from "./firebase.js";
+    import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-    body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background: #0a0a0a;
-      color: #ffffff;
-      min-height: 100vh;
-      display: flex;
-      font-weight: 400;
-      position: relative;
-    }
+    window.addEventListener("DOMContentLoaded", async () => {
+      const vkUid = sessionStorage.getItem("vk_uid");
+      const username = localStorage.getItem("username");
+      if (!vkUid && !username) return location.href = "index.html";
+      if (vkUid) {
+        const snap = await getDoc(doc(db, "users", vkUid));
+        if (snap.exists()) document.getElementById("user").textContent = snap.data().username;
+      } else document.getElementById("user").textContent = username;
+    });
 
-    #particles-js {
-      position: fixed;
-      width: 100%;
-      height: 100%;
-      top: 0;
-      left: 0;
-      z-index: -1;
-    }
-
-    .sidebar {
-      width: 240px;
-      background: #111111;
-      height: 100vh;
-      position: fixed;
-      left: 0;
-      top: 0;
-      border-right: 1px solid #1a1a1a;
-      display: flex;
-      flex-direction: column;
-      z-index: 100;
-    }
-
-    .profile-header {
-      padding: 24px 20px;
-      border-bottom: 1px solid #1a1a1a;
-    }
-
-    .profile-main {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .profile-avatar {
-      width: 36px;
-      height: 36px;
-      background: #ff6b00;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 600;
-      font-size: 14px;
-      color: #000;
-    }
-
-    .profile-info { flex: 1; }
-    .profile-name { font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 2px; }
-    .profile-status { font-size: 12px; color: #666; }
-
-    .logout-btn {
-      background: #1a1a1a;
-      border: 1px solid #222;
-      color: #999;
-      padding: 6px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 12px;
-      transition: 0.2s;
-    }
-
-    .logout-btn:hover { background: #222; color: #fff; }
-
-    .menu-navigation { flex: 1; padding: 0; }
-    .section-title {
-      color: #555;
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      padding: 16px 20px 8px 20px;
-    }
-
-    .menu-items { list-style: none; }
-    .menu-item a {
-      display: flex;
-      align-items: center;
-      padding: 10px 20px;
-      color: #999;
-      text-decoration: none;
-      font-size: 14px;
-      transition: 0.15s ease;
-    }
-    .menu-item a:hover { color: #fff; background: #1a1a1a; }
-    .menu-item a.active { color: #ff6b00; background: #1a1a1a; font-weight: 500; }
-
-    .menu-icon { width: 16px; margin-right: 12px; text-align: center; }
-
-    .main-content {
-      flex: 1;
-      margin-left: 240px;
-      padding: 24px;
-      min-height: 100vh;
-      overflow-y: auto;
-    }
-
-    .panel {
-      background: rgba(17, 17, 17, 0.9);
-      border: 1px solid #1a1a1a;
-      border-radius: 8px;
-      padding: 20px;
-      margin-bottom: 16px;
-      animation: slideIn 0.5s ease forwards;
-      opacity: 0;
-      transform: translateY(15px);
-    }
-
-    .panel-title { color: #fff; margin-bottom: 10px; font-weight: 500; }
-    .panel-content {
-      background: #0d0d0d;
-      border: 1px solid #1a1a1a;
-      border-radius: 6px;
-      padding: 12px;
-      font-family: Consolas, monospace;
-      font-size: 13px;
-      color: #ccc;
-      white-space: pre-wrap;
-    }
-
-    @keyframes slideIn {
-      to { opacity: 1; transform: translateY(0); }
-    }
-  </style>
+    window.logout = () => {
+      localStorage.clear();
+      sessionStorage.clear();
+      location.href = "index.html";
+    };
+  </script>
 </head>
 <body>
-  <div id="particles-js"></div>
-
-  <aside class="sidebar">
-    <div class="profile-header">
-      <div class="profile-main">
-        <div class="profile-avatar" id="avatar">M</div>
-        <div class="profile-info">
-          <div class="profile-name" id="usernameDisplay">Загрузка...</div>
-          <div class="profile-status">beta</div>
-        </div>
-        <button class="logout-btn" id="logoutBtn">Выйти</button>
-      </div>
-    </div>
-
-    <div class="menu-navigation">
-      <div class="section-title">Программы</div>
-      <ul class="menu-items">
-        <li class="menu-item"><a href="everything.html" class="active"><span class="menu-icon">🔎</span>Everything</a></li>
-        <li class="menu-item"><a href="Sy.html"><span class="menu-icon">⚙️</span>SystemInformer</a></li>
-        <li class="menu-item"><a href="PS.html"><span class="menu-icon">💻</span>PowerShell</a></li>
-        <li class="menu-item" id="secretLink" style="display:none;">
-          <a href="admin.html"><span class="menu-icon">🛠️</span>Admin Panel</a>
-        </li>
-      </ul>
-    </div>
-  </aside>
-
-  <div class="main-content">
-    <div class="panel">
-      <div class="panel-title">Поиск запрещённых клиентов Minecraft</div>
-      <div class="panel-content">
-        ext:.exe;.jar regex:(impact|wurst|aristois|huzuni|inertia|sigma|meteor|liquidbounce|future|vape)
-      </div>
-    </div>
+  <div class="sidebar">
+    <h3 style="text-align:center;padding:10px;color:#ff6b00;">MixerCheck</h3>
+    <a href="everything.html" class="active">🔎 Everything</a>
+    <a href="Sy.html">⚙️ SystemInformer</a>
+    <a href="PS.html">💻 PowerShell</a>
+    <button class="logout" onclick="logout()">Выйти</button>
   </div>
-
-  <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
-  <script type="module">
-    import { auth, db } from "./firebase.js";
-    import {
-      signOut,
-      onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-    import {
-      doc,
-      getDoc
-    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-
-    // Проверяем вход
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        window.location.href = "index.html";
-        return;
-      }
-
-      const userRef = doc(db, "users", user.uid);
-      const snap = await getDoc(userRef);
-
-      if (!snap.exists()) {
-        alert("⚠️ Профиль не найден в базе.");
-        await signOut(auth);
-        window.location.href = "index.html";
-        return;
-      }
-
-      const data = snap.data();
-      const username = data.username || user.email.split("@")[0];
-      document.getElementById("usernameDisplay").textContent = username;
-      document.getElementById("avatar").textContent = username[0].toUpperCase();
-
-      // Проверка доступа к admin.html
-      if (data.access && data.access.includes("admin.html")) {
-        document.getElementById("secretLink").style.display = "flex";
-      }
-
-      // Проверка доступа к текущей странице
-      const currentPage = location.pathname.split("/").pop();
-      if (!data.access.includes(currentPage)) {
-        alert("⛔ У вас нет доступа к этой странице!");
-        window.location.href = "index.html";
-      }
-    });
-
-    // Кнопка выхода
-    document.getElementById("logoutBtn").addEventListener("click", async () => {
-      await signOut(auth);
-      window.location.href = "index.html";
-    });
-
-    // Частицы
-    particlesJS("particles-js", {
-      particles: {
-        number: { value: 100, density: { enable: true, value_area: 800 } },
-        color: { value: "#ffffff" },
-        shape: { type: "circle" },
-        opacity: { value: 0.5, random: true },
-        size: { value: 2, random: true },
-        move: { enable: true, speed: 1, random: true },
-        line_linked: { enable: false }
-      },
-      interactivity: {
-        detect_on: "canvas",
-        events: { onhover: { enable: true, mode: "repulse" } }
-      },
-      retina_detect: true
-    });
-  </script>
+  <div class="main">
+    <h2>Добро пожаловать, <span id="user">...</span> 👋</h2>
+    <p>Это ваша панель MixerCheck.</p>
+  </div>
 </body>
 </html>
