@@ -1,87 +1,81 @@
-import { auth, db } from "firebase.js";
-import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { db } from "./firebase.js";
 import {
   doc,
   setDoc,
-  getDoc,
+  getDocs,
+  collection,
+  query,
+  where,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-// Переключение форм
-let isRegister = false;
-const toggle = document.getElementById("toggleForm");
-toggle.addEventListener("click", () => {
-  isRegister = !isRegister;
-  document.getElementById("loginBtn").textContent = isRegister ? "Создать аккаунт" : "Войти";
-  toggle.textContent = isRegister ? "Уже есть аккаунт? Войти" : "Нет аккаунта? Зарегистрироваться";
-});
+document.addEventListener("DOMContentLoaded", () => {
+  let isRegister = false;
 
-// Email вход/регистрация
-document.getElementById("loginBtn").addEventListener("click", async () => {
-  const email = document.getElementById("email").value.trim();
-  const pass = document.getElementById("password").value.trim();
+  const usernameInput = document.getElementById("username");
+  const passwordInput = document.getElementById("password");
+  const loginBtn = document.getElementById("loginBtn");
+  const toggleBtn = document.getElementById("toggleForm");
 
-  if (!email || !pass) return alert("Введите email и пароль");
+  // --- Переключение между входом и регистрацией ---
+  toggleBtn.addEventListener("click", () => {
+    isRegister = !isRegister;
+    loginBtn.textContent = isRegister ? "Зарегистрироваться" : "Войти";
+    toggleBtn.textContent = isRegister
+      ? "Уже есть аккаунт? Войти"
+      : "Нет аккаунта? Зарегистрироваться";
+  });
 
-  try {
-    if (isRegister) {
-      const cred = await createUserWithEmailAndPassword(auth, email, pass);
-      await setDoc(doc(db, "users", cred.user.uid), {
-        username: email.split("@")[0],
-        email,
-        access: ["everything.html"],
-        createdAt: serverTimestamp()
-      });
-      localStorage.setItem("username", email.split("@")[0]);
-      window.location.href = "everything.html";
-    } else {
-      const cred = await signInWithEmailAndPassword(auth, email, pass);
-      const ref = await getDoc(doc(db, "users", cred.user.uid));
-      if (ref.exists()) {
-        localStorage.setItem("username", ref.data().username);
+  // --- Вход / регистрация ---
+  loginBtn.addEventListener("click", async () => {
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value.trim();
+
+    if (!username || !password) {
+      alert("Введите логин и пароль!");
+      return;
+    }
+
+    try {
+      const usersRef = collection(db, "users");
+      const q = query(usersRef, where("username", "==", username));
+      const snapshot = await getDocs(q);
+
+      if (isRegister) {
+        if (!snapshot.empty) {
+          alert("⚠️ Такой логин уже существует!");
+          return;
+        }
+
+        const userId = crypto.randomUUID();
+        await setDoc(doc(db, "users", userId), {
+          username,
+          password, // ⚠️ Для теста, не для продакшена!
+          access: ["everything.html", "Sy.html", "PS.html"],
+          createdAt: serverTimestamp(),
+        });
+
+        localStorage.setItem("username", username);
+        alert("✅ Аккаунт создан!");
         window.location.href = "everything.html";
-      } else alert("Пользователь не найден в базе");
+      } else {
+        if (snapshot.empty) {
+          alert("❌ Пользователь не найден!");
+          return;
+        }
+
+        const userDoc = snapshot.docs[0].data();
+        if (userDoc.password !== password) {
+          alert("❌ Неверный пароль!");
+          return;
+        }
+
+        localStorage.setItem("username", username);
+        window.location.href = "everything.html";
+      }
+    } catch (err) {
+      console.error("Ошибка Firebase:", err);
+      alert("Ошибка: " + err.message);
     }
-  } catch (err) {
-    alert("Ошибка: " + err.message);
-  }
-});
-
-// Вход через VK
-document.getElementById("vkBtn").addEventListener("click", () => {
-  const appId = 54274874;
-  const redirectUri = window.location.origin + window.location.pathname;
-  const url = `https://oauth.vk.com/authorize?client_id=${appId}&display=page&redirect_uri=${redirectUri}&scope=email&response_type=token&v=5.131`;
-  window.location.href = url;
-});
-
-// Обработка VK-токена
-window.addEventListener("load", async () => {
-  const hash = window.location.hash;
-  if (hash.includes("access_token")) {
-    const params = new URLSearchParams(hash.replace("#", ""));
-    const token = params.get("access_token");
-    const userId = params.get("user_id");
-    const email = params.get("email") || `vk_${userId}@vk.com`;
-    const uid = `vk_${userId}`;
-
-    sessionStorage.setItem("vk_uid", uid);
-
-    const userRef = doc(db, "users", uid);
-    const snap = await getDoc(userRef);
-    if (!snap.exists()) {
-      await setDoc(userRef, {
-        username: `vk_${userId}`,
-        email,
-        access: ["everything.html"],
-        createdAt: serverTimestamp()
-      });
-    }
-
-    alert("✅ Успешный вход через VK!");
-    window.location.href = "everything.html";
-  }
+  });
 });

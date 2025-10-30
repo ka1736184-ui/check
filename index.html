@@ -1,22 +1,92 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Вход | MixerCheck</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <title>MixerCheck | Вход</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      background: radial-gradient(circle at bottom, #5b1fa3 0%, #000 80%);
+      font-family: "Segoe UI", sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      color: #fff;
+    }
+
+    .container {
+      background: rgba(17, 17, 17, 0.95);
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 0 25px rgba(255, 107, 0, 0.2);
+      width: 360px;
+      text-align: center;
+      animation: fadeIn 0.6s ease forwards;
+    }
+
+    h1 {
+      color: #ff6b00;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border: none;
+      background: #111;
+      color: #fff;
+      font-size: 15px;
+      transition: 0.3s;
+    }
+
+    input:focus {
+      outline: none;
+      box-shadow: 0 0 6px #ff6b00;
+    }
+
+    button {
+      background: #ff6b00;
+      color: #000;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      padding: 12px;
+      width: 100%;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: 0.2s;
+    }
+    button:hover { background: #ff812a; }
+
+    .toggle {
+      color: #aaa;
+      font-size: 14px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
 </head>
 <body>
   <div class="container">
-    <div class="card">
-      <h2 style="color:#ff6b00;text-align:center;">MixerCheck</h2>
-      <input type="email" id="email" placeholder="Email">
-      <input type="password" id="password" placeholder="Пароль">
+    <h1>MixerCheck</h1>
+    <div id="formContainer">
+      <input id="username" type="text" placeholder="Логин" required />
+      <input id="password" type="password" placeholder="Пароль" required />
       <button id="loginBtn">Войти</button>
-      <button id="vkBtn" style="background:#2787f5;color:#fff;">Войти через VK</button>
-      <p id="toggleForm" style="text-align:center;color:#999;cursor:pointer;">Нет аккаунта? Зарегистрироваться</p>
+      <p class="toggle" id="toggleForm">Нет аккаунта? Зарегистрироваться</p>
     </div>
   </div>
-  <script type="module" src="app.js"></script>
+
+  <script type="module" src="./app.js"></script>
 </body>
 </html>
