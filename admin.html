@@ -118,8 +118,8 @@
       }
 
       try {
-        // Добавление пользователя в Firestore
-        const userRef = await addDoc(collection(db, "users"), {
+        // Добавление нового пользователя в Firestore
+        await addDoc(collection(db, "users"), {
           username: username,
           password: password,  // В будущем, рекомендуется использовать хэш пароля
           role: "user",  // По умолчанию назначаем роль "user"
