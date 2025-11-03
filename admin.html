@@ -13,13 +13,23 @@
       margin: 0;
       padding: 20px;
     }
+    h1 {
+      color: #ff6b00;
+      text-align: center;
+    }
     .user-list {
       margin-top: 20px;
       border: 1px solid #222;
       border-radius: 8px;
       padding: 10px;
     }
-    button {
+    .user {
+      background: #1a1a1a;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+    }
+    .user button {
       background: #ff6b00;
       border: none;
       padding: 6px 12px;
@@ -27,51 +37,101 @@
       cursor: pointer;
       color: #000;
       font-weight: 600;
+      margin-top: 5px;
+    }
+    .user button.delete {
+      background: #ff3838;
+    }
+    .loading {
+      text-align: center;
+      font-size: 18px;
+      color: #fff;
+    }
+    .error {
+      color: #ff3838;
+      text-align: center;
+      font-size: 16px;
     }
   </style>
 </head>
 <body>
   <h1>Админ-панель</h1>
   <div id="userList" class="user-list">Загрузка...</div>
+  <div id="errorMessage" class="error"></div>
 
   <script type="module">
-  import { db } from "./firebase.js";
-  import { collection, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import { auth, db } from "./firebase.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import { collection, getDocs, updateDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-  async function initAdmin() {
-    const username = localStorage.getItem("username");
-    if (!username) return (window.location.href = "index.html");
+    // Функция для получения данных о пользователе из Firebase и загрузки админ-панели
+    async function loadAdminPanel(user) {
+      try {
+        const userDocRef = doc(db, "users", user.uid);
+        const userSnap = await getDoc(userDocRef);
 
-    const usersSnap = await getDocs(collection(db, "users"));
-    const currentUser = [...usersSnap.docs].find(d => d.data().username === username);
+        if (!userSnap.exists()) {
+          showError("⛔ Пользователь не найден в базе!");
+          return (window.location.href = "index.html");
+        }
 
-    if (!currentUser || currentUser.data().role !== "admin") {
-      alert("⛔ Только для администраторов!");
-      return (window.location.href = "osnova.html");
+        const userData = userSnap.data();
+        if (userData.role !== "admin") {
+          showError("⛔ Только для администраторов!");
+          return (window.location.href = "osnova.html");
+        }
+
+        // Загружаем список всех пользователей из Firestore
+        const list = document.getElementById("userList");
+        list.innerHTML = "";
+
+        const usersSnap = await getDocs(collection(db, "users"));
+        usersSnap.forEach(docSnap => {
+          const user = docSnap.data();
+          const div = document.createElement("div");
+          div.classList.add("user");
+          div.innerHTML = `
+            <b>${user.username || "Без имени"}</b> — роль: ${user.role || "user"}<br>
+            Доступ: ${user.access?.join(", ") || "нет"}<br>
+            <button class="delete" data-id="${docSnap.id}">Удалить доступ</button>
+            <button class="promote" data-id="${docSnap.id}">Повысить до администратора</button>
+          `;
+          list.appendChild(div);
+
+          // Обработчик для кнопки "Удалить доступ"
+          div.querySelector(".delete").addEventListener("click", async () => {
+            await updateDoc(doc(db, "users", docSnap.id), { access: [] });
+            alert("✅ Доступ сброшен!");
+            loadAdminPanel(user); // Перезагрузить панель
+          });
+
+          // Обработчик для кнопки "Повысить до администратора"
+          div.querySelector(".promote").addEventListener("click", async () => {
+            await updateDoc(doc(db, "users", docSnap.id), { role: "admin" });
+            alert("✅ Пользователь стал администратором!");
+            loadAdminPanel(user); // Перезагрузить панель
+          });
+        });
+      } catch (error) {
+        showError("⛔ Ошибка при загрузке данных: " + error.message);
+      }
     }
 
-    const list = document.getElementById("userList");
-    list.innerHTML = "";
+    // Функция для отображения ошибки
+    function showError(message) {
+      const errorElement = document.getElementById("errorMessage");
+      errorElement.textContent = message;
+    }
 
-    usersSnap.forEach(docSnap => {
-      const user = docSnap.data();
-      const div = document.createElement("div");
-      div.innerHTML = `
-        <b>${user.username}</b> — роль: ${user.role || "user"}<br>
-        Доступ: ${user.access?.join(", ") || "нет"}<br>
-        <button data-id="${docSnap.id}">Удалить доступ</button>
-        <hr>`;
-      list.appendChild(div);
-
-      div.querySelector("button").addEventListener("click", async () => {
-        await updateDoc(doc(db, "users", docSnap.id), { access: [] });
-        alert("Доступ сброшен!");
-        initAdmin();
-      });
+    // Проверка состояния авторизации
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        showError("⛔ Сначала войдите в систему!");
+        window.location.href = "index.html";
+      } else {
+        loadAdminPanel(user);
+      }
     });
-  }
-
-  initAdmin();
   </script>
 </body>
 </html>
