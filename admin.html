@@ -42,6 +42,9 @@
     .user button.delete {
       background: #ff3838;
     }
+    .user button.promote {
+      background: #ffb800;
+    }
     .loading {
       text-align: center;
       font-size: 18px;
@@ -52,19 +55,83 @@
       text-align: center;
       font-size: 16px;
     }
+    .action-buttons {
+      margin: 20px 0;
+      text-align: center;
+    }
+    .action-buttons button {
+      background: #4CAF50;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      color: white;
+      margin: 10px;
+    }
+    .action-buttons button.logout {
+      background: #f44336;
+    }
   </style>
 </head>
 <body>
   <h1>Админ-панель</h1>
+  
+  <div class="action-buttons">
+    <button id="addUserBtn">Добавить пользователя</button>
+    <button class="logout" id="logoutBtn">Выход</button>
+  </div>
+  
   <div id="userList" class="user-list">Загрузка...</div>
   <div id="errorMessage" class="error"></div>
 
   <script type="module">
     import { auth, db } from "./firebase.js";
-    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-    import { collection, getDocs, updateDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import { collection, getDocs, updateDoc, doc, deleteDoc, getDoc, addDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-    // Функция для получения данных о пользователе из Firebase и загрузки админ-панели
+    // Функция для отображения ошибки
+    function showError(message) {
+      const errorElement = document.getElementById("errorMessage");
+      errorElement.textContent = message;
+    }
+
+    // Функция для выхода из панели администратора
+    async function logout() {
+      try {
+        await signOut(auth);
+        window.location.href = "index.html";  // Перенаправление на страницу входа
+      } catch (error) {
+        showError("⛔ Ошибка при выходе: " + error.message);
+      }
+    }
+
+    // Функция для добавления нового пользователя
+    async function addUser() {
+      const username = prompt("Введите имя пользователя:");
+      if (!username) {
+        return alert("Имя пользователя не может быть пустым!");
+      }
+      const email = prompt("Введите email пользователя:");
+      if (!email) {
+        return alert("Email не может быть пустым!");
+      }
+
+      try {
+        const userRef = await addDoc(collection(db, "users"), {
+          username: username,
+          email: email,
+          role: "user",  // Новому пользователю даем роль по умолчанию "user"
+          access: [],
+        });
+        alert("✅ Пользователь добавлен!");
+        loadAdminPanel(auth.currentUser); // Перезагрузить панель
+      } catch (error) {
+        showError("⛔ Ошибка при добавлении пользователя: " + error.message);
+      }
+    }
+
+    // Функция для получения данных о пользователе и загрузки админ-панели
     async function loadAdminPanel(user) {
       try {
         const userDocRef = doc(db, "users", user.uid);
@@ -95,6 +162,7 @@
             Доступ: ${user.access?.join(", ") || "нет"}<br>
             <button class="delete" data-id="${docSnap.id}">Удалить доступ</button>
             <button class="promote" data-id="${docSnap.id}">Повысить до администратора</button>
+            <button class="remove" data-id="${docSnap.id}">Удалить пользователя</button>
           `;
           list.appendChild(div);
 
@@ -111,19 +179,22 @@
             alert("✅ Пользователь стал администратором!");
             loadAdminPanel(user); // Перезагрузить панель
           });
+
+          // Обработчик для кнопки "Удалить пользователя"
+          div.querySelector(".remove").addEventListener("click", async () => {
+            if (confirm("Вы уверены, что хотите удалить этого пользователя?")) {
+              await deleteDoc(doc(db, "users", docSnap.id));
+              alert("✅ Пользователь удален!");
+              loadAdminPanel(user); // Перезагрузить панель
+            }
+          });
         });
       } catch (error) {
         showError("⛔ Ошибка при загрузке данных: " + error.message);
       }
     }
 
-    // Функция для отображения ошибки
-    function showError(message) {
-      const errorElement = document.getElementById("errorMessage");
-      errorElement.textContent = message;
-    }
-
-    // Проверка состояния авторизации
+    // Инициализация панели после проверки авторизации
     onAuthStateChanged(auth, (user) => {
       if (!user) {
         showError("⛔ Сначала войдите в систему!");
@@ -132,6 +203,12 @@
         loadAdminPanel(user);
       }
     });
+
+    // Обработчик кнопки выхода
+    document.getElementById("logoutBtn").addEventListener("click", logout);
+
+    // Обработчик кнопки добавления пользователя
+    document.getElementById("addUserBtn").addEventListener("click", addUser);
   </script>
 </body>
 </html>
