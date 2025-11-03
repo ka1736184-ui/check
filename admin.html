@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Вход | MixerCheck</title>
+  <title>Админ-панель | Добавить пользователя</title>
   <style>
     body {
       font-family: 'Segoe UI', system-ui, sans-serif;
@@ -48,50 +48,52 @@
 </head>
 <body>
   <div class="form-container">
-    <h2>Вход</h2>
-    <input type="text" id="username" placeholder="Логин" required>
-    <input type="password" id="password" placeholder="Пароль" required>
-    <button id="loginBtn">Войти</button>
+    <h2>Добавить пользователя</h2>
+    <input type="text" id="newUsername" placeholder="Логин" required>
+    <input type="password" id="newPassword" placeholder="Пароль" required>
+    <input type="text" id="newRole" placeholder="Роль (admin/user)" required>
+    <button id="addUserBtn">Добавить пользователя</button>
     <div id="errorMessage" class="error"></div>
   </div>
 
   <script type="module">
-    import { auth, db } from "./firebase.js";
-    import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-    import { getDoc, doc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-
+    import { db } from "./firebase.js";
+    import { setDoc, doc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import { auth } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    
     // Функция для отображения ошибки
     function showError(message) {
       const errorElement = document.getElementById("errorMessage");
       errorElement.textContent = message;
     }
 
-    document.getElementById("loginBtn").addEventListener("click", async () => {
-      const username = document.getElementById("username").value;
-      const password = document.getElementById("password").value;
+    // Функция для добавления нового пользователя
+    document.getElementById("addUserBtn").addEventListener("click", async () => {
+      const username = document.getElementById("newUsername").value;
+      const password = document.getElementById("newPassword").value;
+      const role = document.getElementById("newRole").value;
 
-      if (!username || !password) {
+      if (!username || !password || !role) {
         showError("⛔ Все поля должны быть заполнены!");
         return;
       }
 
       try {
-        // Попытка входа через Firebase с использованием email (логин + email)
-        const email = `${username}@example.com`;  // Генерация email из логина
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        // Генерируем email из логина для использования с Firebase Auth
+        const email = `${username}@example.com`;  // Пример email
 
-        // Проверяем, есть ли этот пользователь в Firestore
-        const userDocRef = doc(db, "users", userCredential.user.uid);
-        const userSnap = await getDoc(userDocRef);
+        // Добавляем пользователя в Firestore
+        await setDoc(doc(db, "users", username), {
+          username: username,
+          role: role,  // Устанавливаем роль пользователя
+          access: [],
+          email: email,  // Привязываем email
+        });
 
-        if (userSnap.exists()) {
-          alert("✅ Вход успешен!");
-          window.location.href = "adminPanel.html";  // Перенаправление на админ-панель
-        } else {
-          showError("⛔ Этот пользователь не найден!");
-        }
+        alert("✅ Пользователь добавлен!");
+        window.location.href = "adminPanel.html";  // Перенаправляем обратно на админ-панель
       } catch (error) {
-        showError("⛔ Ошибка входа: " + error.message);
+        showError("⛔ Ошибка при добавлении пользователя: " + error.message);
       }
     });
   </script>
