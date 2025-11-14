@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin | MixerCheck</title>
 <style>
-  body{font-family:Segoe UI,system-ui;padding:16px}
-  table{width:100%;border-collapse:collapse}
-  th,td{padding:8px;border:1px solid #ddd}
-  input{padding:6px;width:100%}
-  button{padding:6px;margin:2px}
+  body { font-family: Segoe UI, system-ui; padding: 16px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+  th, td { padding: 8px; border: 1px solid #ddd; }
+  input { padding: 6px; width: 100%; }
+  button { padding: 6px; margin: 2px; }
 </style>
 </head>
 <body>
@@ -46,7 +46,7 @@ const username = localStorage.getItem('username');
 
 if (!userId) window.location.href = 'index.html';
 
-// Проверим роль admin
+// Проверка роли admin
 async function ensureAdmin(){
   try {
     const uDocRef = doc(db, 'users', userId);
