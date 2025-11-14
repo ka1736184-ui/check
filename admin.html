@@ -17,6 +17,7 @@
 <h1>Админ-панель</h1>
 <p>Текущий админ: <span id="adminName"></span></p>
 <button id="toOsnova">Открыть osnova</button>
+<button id="toEverything">Открыть everything</button>
 <button id="logout">Выйти</button>
 
 <h2>Пользователи</h2>
@@ -47,7 +48,7 @@ const username = localStorage.getItem('username');
 if (!userId) window.location.href = 'index.html';
 
 // Проверка роли admin
-async function ensureAdmin(){
+async function ensureAdmin() {
   try {
     const uDocRef = doc(db, 'users', userId);
     const uSnap = await getDoc(uDocRef);
@@ -63,23 +64,30 @@ async function ensureAdmin(){
 
 adminName.textContent = username;
 
+// Навигация
 document.getElementById('toOsnova').addEventListener('click', ()=>window.location.href='osnova.html');
+document.getElementById('toEverything').addEventListener('click', ()=>window.location.href='everything.html');
 document.getElementById('logout').addEventListener('click', ()=>{
   localStorage.removeItem('userId');
   localStorage.removeItem('username');
   window.location.href='index.html';
 });
 
+// Загрузка пользователей
 async function loadUsers(){
   tbody.innerHTML = '';
   const q = await getDocs(usersRef);
   q.forEach(docSnap => {
     const data = docSnap.data();
+
+    // если админ — даём полный доступ
+    const accessList = data.role === "admin" ? ["osnova.html","everything.html","admin.html"] : (data.access || []);
+
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${data.username || ''}</td>
       <td>${data.role || 'user'}</td>
-      <td><input data-id="${docSnap.id}" class="accessInput" value="${(data.access||[]).join(',')}"></td>
+      <td><input data-id="${docSnap.id}" class="accessInput" value="${accessList.join(',')}"></td>
       <td>
         <button class="saveBtn" data-id="${docSnap.id}">Сохранить</button>
         <button class="delBtn" data-id="${docSnap.id}">Удалить</button>
@@ -92,27 +100,42 @@ async function loadUsers(){
   document.querySelectorAll('.delBtn').forEach(b => b.addEventListener('click', delUser));
 }
 
+// Сохранение доступа
 async function saveUser(e){
   const id = e.target.dataset.id;
   const input = document.querySelector(`input[data-id="${id}"]`);
   const access = input.value.split(',').map(s => s.trim()).filter(Boolean);
+
   try {
-    await updateDoc(doc(db, 'users', id), { access });
+    const uSnap = await getDoc(doc(db,'users',id));
+    if(uSnap.data().role === 'admin'){
+      alert('Админ всегда имеет полный доступ');
+      return;
+    }
+
+    await updateDoc(doc(db,'users',id), { access });
     alert('Сохранено');
     loadUsers();
-  } catch (err) {
+  } catch(err){
     console.error(err);
     alert('Ошибка при сохранении');
   }
 }
 
+// Удаление пользователя
 async function delUser(e){
   const id = e.target.dataset.id;
-  if (!confirm('Удалить пользователя?')) return;
+  const uSnap = await getDoc(doc(db,'users',id));
+  if(uSnap.data().role === 'admin'){
+    alert('Нельзя удалить админа!');
+    return;
+  }
+
+  if(!confirm('Удалить пользователя?')) return;
   try {
-    await deleteDoc(doc(db, 'users', id));
+    await deleteDoc(doc(db,'users',id));
     loadUsers();
-  } catch (err){
+  } catch(err){
     console.error(err);
     alert('Ошибка при удалении');
   }
@@ -123,7 +146,8 @@ document.getElementById('addUserBtn').addEventListener('click', async ()=>{
   const u = document.getElementById('newUsername').value.trim();
   const p = document.getElementById('newPassword').value.trim();
   const a = document.getElementById('newAccess').value.split(',').map(s=>s.trim()).filter(Boolean);
-  if (!u || !p) return alert('Введите логин и пароль');
+  if(!u || !p) return alert('Введите логин и пароль');
+
   try {
     await addDoc(usersRef, { username: u, password: p, role: 'user', access: a });
     alert('Пользователь добавлен');
