@@ -1,241 +1,144 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Админ-панель | MixerCheck</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background: #0a0a0a;
-      color: #fff;
-      margin: 0;
-      padding: 20px;
-    }
-    h1 {
-      color: #ff6b00;
-      text-align: center;
-    }
-    .user-list {
-      margin-top: 20px;
-      border: 1px solid #222;
-      border-radius: 8px;
-      padding: 10px;
-      overflow-x: auto;
-    }
-    .user {
-      background: #1a1a1a;
-      padding: 10px;
-      margin: 10px 0;
-      border-radius: 5px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    th, td {
-      padding: 10px;
-      text-align: left;
-      border: 1px solid #444;
-    }
-    th {
-      background-color: #333;
-    }
-    button {
-      background: #ff6b00;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 4px;
-      cursor: pointer;
-      color: #000;
-      font-weight: 600;
-      margin-top: 5px;
-    }
-    .delete {
-      background: #ff3838;
-    }
-    .add-access {
-      background: #4CAF50;
-    }
-    .action-buttons {
-      margin: 20px 0;
-      text-align: center;
-    }
-    .action-buttons button {
-      background: #4CAF50;
-      border: none;
-      padding: 10px 20px;
-      font-size: 16px;
-      border-radius: 5px;
-      cursor: pointer;
-      color: white;
-      margin: 10px;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin | MixerCheck</title>
+<style>
+  body{font-family:Segoe UI,system-ui;padding:16px}
+  table{width:100%;border-collapse:collapse}
+  th,td{padding:8px;border:1px solid #ddd}
+  input{padding:6px;width:100%}
+  button{padding:6px;margin:2px}
+</style>
 </head>
 <body>
-  <h1>Админ-панель</h1>
-  
-  <div class="action-buttons">
-    <button id="addUserBtn">Добавить пользователя</button>
-    <button class="logout" id="logoutBtn">Выход</button>
-  </div>
 
-  <div id="userList" class="user-list">Загрузка...</div>
-  <div id="errorMessage" class="error"></div>
+<h1>Админ-панель</h1>
+<p>Текущий админ: <span id="adminName"></span></p>
+<button id="toOsnova">Открыть osnova</button>
+<button id="logout">Выйти</button>
 
-  <script type="module">
-    import { auth, db } from "./firebase.js";
-    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-    import { collection, getDocs, updateDoc, doc, deleteDoc, addDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+<h2>Пользователи</h2>
+<table id="usersTable">
+  <thead>
+    <tr><th>Логин</th><th>Роль</th><th>Access</th><th>Действия</th></tr>
+  </thead>
+  <tbody></tbody>
+</table>
 
-    // Функция для отображения ошибки
-    function showError(message) {
-      const errorElement = document.getElementById("errorMessage");
-      errorElement.textContent = message;
+<h3>Добавить пользователя</h3>
+<input id="newUsername" placeholder="Логин">
+<input id="newPassword" placeholder="Пароль">
+<input id="newAccess" placeholder="Доступ (через запятую)">
+<button id="addUserBtn">Добавить</button>
+
+<script type="module">
+import { db } from './firebase.js';
+import { collection, getDocs, addDoc, deleteDoc, doc, updateDoc, getDoc } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js';
+
+const usersRef = collection(db, 'users');
+const tbody = document.querySelector('#usersTable tbody');
+const adminName = document.getElementById('adminName');
+
+const userId = localStorage.getItem('userId');
+const username = localStorage.getItem('username');
+
+if (!userId) window.location.href = 'index.html';
+
+// Проверим роль admin
+async function ensureAdmin(){
+  try {
+    const uDocRef = doc(db, 'users', userId);
+    const uSnap = await getDoc(uDocRef);
+    if (!uSnap.exists() || uSnap.data().role !== 'admin') {
+      alert('Доступ запрещён');
+      window.location.href = 'index.html';
     }
+  } catch(err) {
+    console.error(err);
+    window.location.href = 'index.html';
+  }
+}
 
-    // Функция для выхода из панели администратора
-    async function logout() {
-      try {
-        await signOut(auth);
-        window.location.href = "index.html";  // Перенаправление на страницу входа
-      } catch (error) {
-        showError("⛔ Ошибка при выходе: " + error.message);
-      }
-    }
+adminName.textContent = username;
 
-    // Функция для добавления нового пользователя
-    async function addUser() {
-      const username = prompt("Введите имя пользователя:");
-      if (!username) {
-        return alert("Имя пользователя не может быть пустым!");
-      }
-      const password = prompt("Введите пароль пользователя:");
-      if (!password) {
-        return alert("Пароль не может быть пустым!");
-      }
+document.getElementById('toOsnova').addEventListener('click', ()=>window.location.href='osnova.html');
+document.getElementById('logout').addEventListener('click', ()=>{
+  localStorage.removeItem('userId');
+  localStorage.removeItem('username');
+  window.location.href='index.html';
+});
 
-      try {
-        // Добавление нового пользователя в Firestore
-        await addDoc(collection(db, "users"), {
-          username: username,
-          password: password,  // В будущем, рекомендуется использовать хэш пароля
-          role: "user",  // По умолчанию назначаем роль "user"
-          access: [],
-        });
-        alert("✅ Пользователь добавлен!");
-        loadAdminPanel(auth.currentUser); // Перезагружаем панель
-      } catch (error) {
-        showError("⛔ Ошибка при добавлении пользователя: " + error.message);
-      }
-    }
+async function loadUsers(){
+  tbody.innerHTML = '';
+  const q = await getDocs(usersRef);
+  q.forEach(docSnap => {
+    const data = docSnap.data();
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${data.username || ''}</td>
+      <td>${data.role || 'user'}</td>
+      <td><input data-id="${docSnap.id}" class="accessInput" value="${(data.access||[]).join(',')}"></td>
+      <td>
+        <button class="saveBtn" data-id="${docSnap.id}">Сохранить</button>
+        <button class="delBtn" data-id="${docSnap.id}">Удалить</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
 
-    // Функция для загрузки админ-панели и отображения таблицы пользователей
-    async function loadAdminPanel(user) {
-      try {
-        const userDocRef = doc(db, "users", user.uid);
-        const userSnap = await getDoc(userDocRef);
+  document.querySelectorAll('.saveBtn').forEach(b => b.addEventListener('click', saveUser));
+  document.querySelectorAll('.delBtn').forEach(b => b.addEventListener('click', delUser));
+}
 
-        if (!userSnap.exists()) {
-          showError("⛔ Пользователь не найден в базе!");
-          return (window.location.href = "index.html");
-        }
+async function saveUser(e){
+  const id = e.target.dataset.id;
+  const input = document.querySelector(`input[data-id="${id}"]`);
+  const access = input.value.split(',').map(s => s.trim()).filter(Boolean);
+  try {
+    await updateDoc(doc(db, 'users', id), { access });
+    alert('Сохранено');
+    loadUsers();
+  } catch (err) {
+    console.error(err);
+    alert('Ошибка при сохранении');
+  }
+}
 
-        const userData = userSnap.data();
-        if (userData.role !== "admin") {
-          showError("⛔ Только для администраторов!");
-          return (window.location.href = "osnova.html");
-        }
+async function delUser(e){
+  const id = e.target.dataset.id;
+  if (!confirm('Удалить пользователя?')) return;
+  try {
+    await deleteDoc(doc(db, 'users', id));
+    loadUsers();
+  } catch (err){
+    console.error(err);
+    alert('Ошибка при удалении');
+  }
+}
 
-        // Загружаем список всех пользователей из Firestore
-        const list = document.getElementById("userList");
-        list.innerHTML = "";
+// Добавление пользователя
+document.getElementById('addUserBtn').addEventListener('click', async ()=>{
+  const u = document.getElementById('newUsername').value.trim();
+  const p = document.getElementById('newPassword').value.trim();
+  const a = document.getElementById('newAccess').value.split(',').map(s=>s.trim()).filter(Boolean);
+  if (!u || !p) return alert('Введите логин и пароль');
+  try {
+    await addDoc(usersRef, { username: u, password: p, role: 'user', access: a });
+    alert('Пользователь добавлен');
+    loadUsers();
+  } catch(err){
+    console.error(err);
+    alert('Ошибка при добавлении пользователя');
+  }
+});
 
-        const usersSnap = await getDocs(collection(db, "users"));
-        usersSnap.forEach(docSnap => {
-          const user = docSnap.data();
-          const div = document.createElement("div");
-          div.classList.add("user");
-          div.innerHTML = `
-            <b>${user.username || "Без имени"}</b> — роль: ${user.role || "user"}<br>
-            <table>
-              <tr><th>Мануал</th><th>Доступ</th><th>Действия</th></tr>
-            </table>
-            <button class="delete" data-id="${docSnap.id}">Удалить пользователя</button>
-            <button class="add-access" data-id="${docSnap.id}">Добавить доступ</button>
-          `;
-          list.appendChild(div);
+// Инициализация
+await ensureAdmin();
+await loadUsers();
 
-          const accessTable = div.querySelector("table");
+</script>
 
-          // Добавляем доступы
-          user.access?.forEach(manual => {
-            const row = document.createElement("tr");
-            row.innerHTML = `
-              <td>${manual}</td>
-              <td><button class="delete-access" data-manual="${manual}" data-user-id="${docSnap.id}">Удалить доступ</button></td>
-            `;
-            accessTable.appendChild(row);
-          });
-
-          // Обработчик для кнопки "Добавить доступ"
-          div.querySelector(".add-access").addEventListener("click", async () => {
-            const manual = prompt("Введите мануал для добавления (например, 'Мануал 1'):");
-            if (manual) {
-              const userRef = doc(db, "users", docSnap.id);
-              await updateDoc(userRef, {
-                access: [...user.access, manual],
-              });
-              alert("✅ Доступ добавлен!");
-              loadAdminPanel(user);  // Перезагрузить панель
-            }
-          });
-
-          // Обработчик для кнопки "Удалить пользователя"
-          div.querySelector(".delete").addEventListener("click", async () => {
-            const confirmDelete = confirm("Вы уверены, что хотите удалить этого пользователя?");
-            if (confirmDelete) {
-              await deleteDoc(doc(db, "users", docSnap.id));
-              alert("✅ Пользователь удален!");
-              loadAdminPanel(user); // Перезагрузить панель
-            }
-          });
-
-          // Обработчик для кнопки "Удалить доступ"
-          div.querySelectorAll(".delete-access").forEach(button => {
-            button.addEventListener("click", async () => {
-              const manualToDelete = button.getAttribute("data-manual");
-              const userRef = doc(db, "users", button.getAttribute("data-user-id"));
-              const userSnap = await getDoc(userRef);
-              const updatedAccess = userSnap.data().access.filter(manual => manual !== manualToDelete);
-              await updateDoc(userRef, { access: updatedAccess });
-              alert("✅ Доступ удален!");
-              loadAdminPanel(user); // Перезагрузить панель
-            });
-          });
-        });
-      } catch (error) {
-        showError("⛔ Ошибка при загрузке данных: " + error.message);
-      }
-    }
-
-    // Инициализация панели после проверки авторизации
-    onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        showError("⛔ Сначала войдите в систему!");
-        window.location.href = "index.html";
-      } else {
-        loadAdminPanel(user);
-      }
-    });
-
-    // Обработчик для кнопки "Выход"
-    document.getElementById("logoutBtn").addEventListener("click", logout);
-
-    // Обработчик для кнопки "Добавить пользователя"
-    document.getElementById("addUserBtn").addEventListener("click", addUser);
-  </script>
 </body>
 </html>
