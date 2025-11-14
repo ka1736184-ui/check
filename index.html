@@ -83,17 +83,11 @@
           return;
         }
 
-        const user = snap.docs[0].data();
-
         // сохранить вход
         localStorage.setItem("username", username);
 
-        // если это админ → ведём в админку
-        if (user.role === "admin") {
-          window.location.href = "admin.html";
-        } else {
-          window.location.href = "osnova.html";
-        }
+        // всегда кидаем в everything.html
+        window.location.href = "everything.html";
 
       } catch (err) {
         console.error("Ошибка входа:", err);
@@ -126,13 +120,14 @@
           username,
           password,
           role: "user",
-          access: ["osnova.html"]
+          access: ["everything.html"]
         });
 
         localStorage.setItem("username", username);
         alert("✅ Регистрация успешна!");
 
-        window.location.href = "osnova.html";
+        // всегда отправляем в everything.html
+        window.location.href = "everything.html";
 
       } catch (err) {
         console.error("Ошибка регистрации:", err);
@@ -140,29 +135,6 @@
       }
     });
 
-    // ======================
-    // 🚀 АВТО-ВХОД
-    // ======================
-    async function autoLogin() {
-      const username = localStorage.getItem("username");
-      if (!username) return;
-
-      // найдем пользователя по username
-      const q = query(usersRef, where("username", "==", username));
-      const snap = await getDocs(q);
-
-      if (snap.empty) return;
-
-      const user = snap.docs[0].data();
-
-      if (user.role === "admin") {
-        window.location.href = "admin.html";
-      } else {
-        window.location.href = "osnova.html";
-      }
-    }
-
-    autoLogin();
   </script>
 
 </body>
