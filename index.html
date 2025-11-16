@@ -39,12 +39,17 @@ th,td{padding:10px;border-bottom:1px dashed rgba(255,255,255,0.03);text-align:le
 </head>
 <body>
 
-<!-- LOGIN -->
-<div id="loginBox" class="container">
+<!-- LOGIN / REG -->
+<div id="authBox" class="container">
   <div class="card" style="max-width:420px;margin:60px auto;padding:28px;text-align:center">
     <div class="logo">DesignStudio</div>
-    <h2 style="margin-top:8px">Вход через Google</h2>
-    <button id="googleLogin" style="margin-top:20px;width:100%;">Войти через Google</button>
+    <h2 style="margin-top:8px">Вход / Регистрация</h2>
+    <label>Email</label>
+    <input id="authEmail" placeholder="Email">
+    <label>Пароль</label>
+    <input id="authPassword" type="password" placeholder="Пароль">
+    <button id="loginBtn" style="margin-top:12px;width:100%;">Войти</button>
+    <button id="registerBtn" style="margin-top:8px;width:100%;">Регистрация</button>
   </div>
 </div>
 
@@ -127,8 +132,8 @@ th,td{padding:10px;border-bottom:1px dashed rgba(255,255,255,0.03);text-align:le
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyC4X8TIIegH0En1tuUspJtixyc-dcx1_9Y",
@@ -136,71 +141,72 @@ const firebaseConfig = {
   projectId: "studia-35b43",
   storageBucket: "studia-35b43.firebasestorage.app",
   messagingSenderId: "186158637676",
-  appId: "1:186158637676:web:e62c3261a06441e4fb2e49",
-  measurementId: "G-L339B7CMZK"
+  appId: "1:186158637676:web:e62c3261a06441e4fb2e49"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const provider = new GoogleAuthProvider();
+const db = getFirestore(app);
 
-const ADMIN_EMAIL = "batytvoeymamas@gmail.com";
-window.canEdit = false;
+const ADMIN_EMAIL = "masileka";
+const ADMIN_PASSWORD = "FjkgFsawqER!1";
+let canEdit = false;
 
+// --- Local DB ---
 const DB_KEY='ds_data_v1';
 function loadDB(){const raw=localStorage.getItem(DB_KEY);if(!raw) return {statuses:["⏳ Работа","✅ Готов","💰 Оплата"],projects:[]}; try{return JSON.parse(raw);}catch(e){return {statuses:["⏳ Работа","✅ Готов","💰 Оплата"],projects:[]}}}
 function saveDB(db){localStorage.setItem(DB_KEY,JSON.stringify(db));}
 let DB = loadDB();
 
-// --- Google Login ---
-document.getElementById('googleLogin').onclick = async () => {
-  try {
-    const result = await signInWithPopup(auth, provider);
-    const user = result.user;
-    window.canEdit = (user.email === ADMIN_EMAIL);
-    initApp(user.displayName || user.email + (window.canEdit ? ' (Admin)' : ''));
-  } catch(err) {
-    alert('Ошибка входа: '+err.message);
-  }
+// --- Auth ---
+document.getElementById('loginBtn').onclick = () => {
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value.trim();
+  signInWithEmailAndPassword(auth,email,password)
+    .then(async userCredential => {
+      const userDoc = await getDoc(doc(db,"users",email));
+      canEdit = userDoc.exists() && userDoc.data().admin;
+      initApp(email + (canEdit?" (Admin)":""));
+    })
+    .catch(err=>alert("Неверный логин или пароль"));
 }
 
-// --- Auth State ---
-onAuthStateChanged(auth, user => {
+document.getElementById('registerBtn').onclick = () => {
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value.trim();
+  if(!email || !password){alert("Введите email и пароль");return;}
+  createUserWithEmailAndPassword(auth,email,password)
+    .then(async userCredential => {
+      // Создаём запись в Firestore
+      const isAdmin = (email === ADMIN_EMAIL && password === ADMIN_PASSWORD);
+      await setDoc(doc(db,"users",email), {admin:isAdmin});
+      canEdit = isAdmin;
+      initApp(email + (canEdit?" (Admin)":""));
+    })
+    .catch(err=>alert("Ошибка регистрации: "+err.message));
+}
+
+onAuthStateChanged(auth,user=>{
   if(user){
-    window.canEdit = (user.email === ADMIN_EMAIL);
-    initApp(user.displayName || user.email + (window.canEdit ? ' (Admin)' : ''));
+    getDoc(doc(db,"users",user.email)).then(userDoc=>{
+      canEdit = userDoc.exists() && userDoc.data().admin;
+      initApp(user.email + (canEdit?" (Admin)":""));
+    });
   }
 });
 
-// --- Logout ---
-function logout(){window.canEdit=false;signOut(auth);location.reload();}
-
-// --- App ---
-function initApp(userLabel){
-  document.getElementById('loginBox').classList.add('hidden');
-  document.getElementById('app').classList.remove('hidden');
-  document.getElementById('userLabel').innerText = userLabel;
-
-  renderStatuses();
-  renderProjects();
-  populateFilter();
-
-  document.getElementById('addProjectBtn').onclick = ()=>{if(window.canEdit) openAddModal();};
-  document.getElementById('addStatusBtn').onclick = ()=>{if(window.canEdit) addStatus();};
-  document.getElementById('qSearch').addEventListener('input',renderProjects);
-  document.getElementById('filterStatus').addEventListener('change',renderProjects);
-}
+function logout(){canEdit=false;signOut(auth);location.reload();}
 
 // --- Tabs ---
 function openTab(id){document.querySelectorAll('.tab').forEach(t=>t.classList.add('hidden'));document.getElementById(id).classList.remove('hidden');}
 
-// --- Status ---
+// --- Status management ---
 function renderStatuses(){
   const container=document.getElementById('statusList');container.innerHTML='';
   DB.statuses.forEach((s,i)=>{
     const row=document.createElement('div');row.className='status-row';
     row.innerHTML=`<div>${s}</div>
-      <div class="controls" style="display:${window.canEdit?'flex':'none'}">
+      <div class="controls" style="display:${canEdit?'flex':'none'}">
         <button class="link-like" onclick="editStatus(${i})">✏️</button>
         <button class="link-like" onclick="removeStatus(${i})">🗑️</button>
       </div>`;
@@ -209,9 +215,10 @@ function renderStatuses(){
   saveDB(DB);
   populateStatusSelects();
 }
-function addStatus(){const v=document.getElementById('newStatusText').value.trim();if(!v){alert('Введите статус');return;}DB.statuses.push(v);document.getElementById('newStatusText').value='';renderStatuses();}
-function editStatus(i){const val=prompt('Редактировать статус',DB.statuses[i]);if(val!=null){DB.statuses[i]=val.trim()?val:DB.statuses[i];renderStatuses();}}
-function removeStatus(i){if(!confirm('Удалить статус?')) return;DB.statuses.splice(i,1);renderStatuses();}
+
+function addStatus(){if(!canEdit) return; const v=document.getElementById('newStatusText').value.trim();if(!v){alert('Введите статус');return;}DB.statuses.push(v);document.getElementById('newStatusText').value='';renderStatuses();}
+function editStatus(i){if(!canEdit) return; const val=prompt('Редактировать статус',DB.statuses[i]);if(val!=null){DB.statuses[i]=val.trim()?val:DB.statuses[i];renderStatuses();}}
+function removeStatus(i){if(!canEdit) return; if(!confirm('Удалить статус?')) return; DB.statuses.splice(i,1); renderStatuses();}
 function populateStatusSelects(){const selects=[document.getElementById('mStatus'),document.getElementById('filterStatus')];selects.forEach(sel=>{const cur=sel.value;sel.innerHTML='';if(sel.id==='filterStatus') sel.appendChild(new Option('Все статусы','all'));DB.statuses.forEach(s=>sel.appendChild(new Option(s,s)));if(cur) sel.value=cur;});
 
 // --- Projects ---
@@ -227,7 +234,7 @@ function renderProjects(){
       <td><span class="status-pill">${p.status}</span></td>
       <td>${p.date||'—'}</td>
       <td>${p.budget||'—'} ₽</td>
-      <td><div class="controls" style="display:${window.canEdit?'flex':'none'}">
+      <td><div class="controls" style="display:${canEdit?'flex':'none'}">
         <button class="small" onclick="openEditModal(${idx})">✏️</button>
         <button class="small" onclick="deleteProject(${idx})">🗑️</button>
       </div></td>`;
@@ -235,12 +242,14 @@ function renderProjects(){
   });
 }
 
+// --- Modal ---
 let editIndex=null;
-function openAddModal(){editIndex=null;document.getElementById('modalTitle').innerText='Новый проект';document.getElementById('mName').value='';document.getElementById('mDate').value='';document.getElementById('mBudget').value='';populateStatusSelects();document.getElementById('modal').classList.remove('hidden');}
-function openEditModal(i){editIndex=i;const p=DB.projects[i];document.getElementById('modalTitle').innerText='Редактировать проект';document.getElementById('mName').value=p.name;document.getElementById('mStatus').value=p.status;document.getElementById('mDate').value=p.date||'';document.getElementById('mBudget').value=p.budget;populateStatusSelects();document.getElementById('modal').classList.remove('hidden');}
+function openAddModal(){if(!canEdit) return; editIndex=null;document.getElementById('modalTitle').innerText='Новый проект';document.getElementById('mName').value='';document.getElementById('mDate').value='';document.getElementById('mBudget').value='';populateStatusSelects();document.getElementById('modal').classList.remove('hidden');}
+function openEditModal(i){if(!canEdit) return; editIndex=i;const p=DB.projects[i];document.getElementById('modalTitle').innerText='Редактировать проект';document.getElementById('mName').value=p.name;document.getElementById('mStatus').value=p.status;document.getElementById('mDate').value=p.date||'';document.getElementById('mBudget').value=p.budget;populateStatusSelects();document.getElementById('modal').classList.remove('hidden');}
 function closeModal(){document.getElementById('modal').classList.add('hidden');}
+
 document.getElementById('saveModalBtn').onclick=function(){
-  if(!window.canEdit) return;
+  if(!canEdit) return;
   const name=document.getElementById('mName').value.trim();
   const status=document.getElementById('mStatus').value;
   const date=document.getElementById('mDate').value;
@@ -248,10 +257,26 @@ document.getElementById('saveModalBtn').onclick=function(){
   if(!name){alert('Введите название');return;}
   const obj={name,status,date,budget};
   if(editIndex===null) DB.projects.push(obj); else DB.projects[editIndex]=obj;
-  saveDB(DB);renderProjects();closeModal();
+  saveDB(DB); renderProjects(); closeModal();
 }
-function deleteProject(i){if(!window.canEdit) return; if(!confirm('Удалить проект?')) return;DB.projects.splice(i,1);saveDB(DB);renderProjects();}
+function deleteProject(i){if(!canEdit) return; if(!confirm('Удалить проект?')) return; DB.projects.splice(i,1); saveDB(DB); renderProjects();}
+
+// --- Init App ---
+function initApp(userLabel){
+  document.getElementById('authBox').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  document.getElementById('userLabel').innerText = userLabel;
+  renderStatuses();
+  renderProjects();
+  populateFilter();
+  document.getElementById('addProjectBtn').onclick=()=>{openAddModal();}
+  document.getElementById('addStatusBtn').onclick=()=>{addStatus();}
+  document.getElementById('qSearch').addEventListener('input',renderProjects);
+  document.getElementById('filterStatus').addEventListener('change',renderProjects);
+}
+
 function populateFilter(){const f=document.getElementById('filterStatus');const cur=f.value;f.innerHTML='';f.appendChild(new Option('Все статусы','all'));DB.statuses.forEach(s=>f.appendChild(new Option(s,s)));if(cur) f.value=cur;}
 </script>
+
 </body>
 </html>
