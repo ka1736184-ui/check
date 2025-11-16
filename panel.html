@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Дизайн студия — Панель</title>
+<style>
+body{font-family:Arial,sans-serif;background:#0d0f12;color:#fff;margin:0}
+.topbar{background:#14171c;height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+button{padding:6px 12px;border:none;border-radius:8px;background:#4c6ef5;color:#fff;cursor:pointer}
+.container{padding:20px}
+.card{background:#14171c;padding:16px;border-radius:12px;margin-bottom:12px}
+input,select{padding:6px;width:100%;margin:6px 0;border-radius:8px;background:#0f1316;color:#fff;border:1px solid #333}
+table{width:100%;border-collapse:collapse}
+th,td{padding:8px;border-bottom:1px solid #333;text-align:left}
+.controls{display:flex;gap:6px}
+.hidden{display:none}
+.status-pill{padding:4px 6px;border-radius:999px;background:#4c6ef5;font-size:12px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div>DesignStudio</div>
+  <div>
+    <span id="userLabel"></span>
+    <button onclick="logout()">Выйти</button>
+  </div>
+</div>
+
+<div class="container">
+  <div class="card">
+    <h3>Проекты</h3>
+    <input id="projName" placeholder="Название проекта">
+    <select id="projStatus">
+      <option>⏳ Работа</option>
+      <option>✅ Готов</option>
+      <option>💰 Оплата</option>
+    </select>
+    <input id="projBudget" placeholder="Бюджет">
+    <button id="addProjectBtn">Добавить проект</button>
+    <table>
+      <thead><tr><th>Проект</th><th>Статус</th><th>Бюджет</th><th>Действия</th></tr></thead>
+      <tbody id="projTable"></tbody>
+    </table>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, collection, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyC4X8TIIegH0En1tuUspJtixyc-dcx1_9Y",
+  authDomain: "studia-35b43.firebaseapp.com",
+  projectId: "studia-35b43",
+  storageBucket: "studia-35b43.firebasestorage.app",
+  messagingSenderId: "186158637676",
+  appId: "1:186158637676:web:e62c3261a06441e4fb2e49",
+  measurementId: "G-L339B7CMZK"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth();
+const db = getFirestore();
+
+let isAdmin = false;
+let projects = [];
+let userLogin = "";
+
+// Проверка авторизации
+onAuthStateChanged(auth, async user => {
+  if(!user){ window.location.href="auth.html"; return; }
+  document.getElementById('userLabel').innerText = user.email;
+  userLogin = user.email.split('@')[0];
+  const docSnap = await getDoc(doc(db, "users", userLogin));
+  if(docSnap.exists()) isAdmin = docSnap.data().admin;
+  await loadProjects();
+});
+
+// Загрузка проектов из Firestore
+async function loadProjects(){
+  const projSnap = await getDocs(collection(db, "projects"));
+  projects = [];
+  projSnap.forEach(doc => projects.push({id: doc.id, ...doc.data()}));
+  renderProjects();
+}
+
+// --- Панель проектов ---
+function renderProjects(){
+  const tbody = document.getElementById('projTable');
+  tbody.innerHTML = '';
+  projects.forEach((p,i)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${p.name}</td>
+      <td><span class="status-pill">${p.status}</span></td>
+      <td>${p.budget}</td>
+      <td>
+        <div class="controls" style="display:${isAdmin?'flex':'none'}">
+          <button onclick="deleteProject('${p.id}')">🗑️</button>
+        </div>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// --- Добавление ---
+document.getElementById('addProjectBtn').onclick = async ()=>{
+  if(!isAdmin){ alert("Только админ может добавлять проекты"); return; }
+  const name = document.getElementById('projName').value.trim();
+  const status = document.getElementById('projStatus').value;
+  const budget = document.getElementById('projBudget').value.trim();
+  if(!name){ alert("Введите название проекта"); return; }
+  const newProjRef = doc(db, "projects", name + "_" + Date.now());
+  await setDoc(newProjRef, {name,status,budget});
+  await loadProjects();
+  document.getElementById('projName').value = "";
+  document.getElementById('projBudget').value = "";
+};
+
+// --- Удаление ---
+async function deleteProject(id){
+  if(!isAdmin){ alert("Только админ может удалять проекты"); return; }
+  if(!confirm("Удалить проект?")) return;
+  await deleteDoc(doc(db, "projects", id));
+  await loadProjects();
+}
+
+// --- Выход ---
+function logout(){ signOut(auth).then(()=>window.location.href="auth.html"); }
+</script>
+</body>
+</html>
