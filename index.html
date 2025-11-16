@@ -127,53 +127,58 @@ th,td{padding:10px;border-bottom:1px dashed rgba(255,255,255,0.03);text-align:le
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyC4X8TIIegH0En1tuUspJtixyc-dcx1_9Y",
   authDomain: "studia-35b43.firebaseapp.com",
   projectId: "studia-35b43",
   storageBucket: "studia-35b43.firebasestorage.app",
   messagingSenderId: "186158637676",
-  appId: "1:186158637676:web:e62c3261a06441e4fb2e49",
-  measurementId: "G-L339B7CMZK"
+  appId: "1:186158637676:web:e62c3261a06441e4fb2e49"
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
 const ADMIN_EMAIL = "batytvoeymamas@gmail.com";
 window.canEdit = false;
 
+// --- LocalStorage DB ---
 const DB_KEY='ds_data_v1';
 function loadDB(){const raw=localStorage.getItem(DB_KEY);if(!raw) return {statuses:["⏳ Работа","✅ Готов","💰 Оплата"],projects:[]}; try{return JSON.parse(raw);}catch(e){return {statuses:["⏳ Работа","✅ Готов","💰 Оплата"],projects:[]}}}
 function saveDB(db){localStorage.setItem(DB_KEY,JSON.stringify(db));}
 let DB = loadDB();
 
 // --- Auth ---
-document.getElementById('googleLogin').onclick = () => {
-  signInWithPopup(auth, provider).then(result => {
+document.getElementById('googleLogin').onclick = async () => {
+  try{
+    const result = await signInWithPopup(auth, provider);
     const user = result.user;
     window.canEdit = (user.email === ADMIN_EMAIL);
     initApp(user.displayName || user.email + (window.canEdit ? ' (Admin)' : ''));
-  }).catch(err=>alert('Ошибка входа: '+err.message));
+  } catch(err){
+    alert('Ошибка входа: '+err.message);
+  }
 }
 
-onAuthStateChanged(auth, user=>{
+onAuthStateChanged(auth, user => {
   if(user){
     window.canEdit = (user.email === ADMIN_EMAIL);
     initApp(user.displayName || user.email + (window.canEdit ? ' (Admin)' : ''));
   }
 });
 
+function logout(){window.canEdit=false;signOut(auth);location.reload();}
+
 // --- App ---
 function initApp(userLabel){
   document.getElementById('loginBox').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
   document.getElementById('userLabel').innerText = userLabel;
+
   renderStatuses();
   renderProjects();
   populateFilter();
@@ -183,7 +188,6 @@ function initApp(userLabel){
   document.getElementById('qSearch').addEventListener('input',renderProjects);
   document.getElementById('filterStatus').addEventListener('change',renderProjects);
 }
-function logout(){window.canEdit=false;auth.signOut();location.reload();}
 
 // --- Tabs ---
 function openTab(id){document.querySelectorAll('.tab').forEach(t=>t.classList.add('hidden'));document.getElementById(id).classList.remove('hidden');}
@@ -228,8 +232,10 @@ function renderProjects(){
     tbody.appendChild(tr);
   });
 }
-function openAddModal(){editIndex=null;document.getElementById('modalTitle').innerText='Новый проект';document.getElementById('mName').value='';document.getElementById('mDate').value='';document.getElementById('mBudget').value='';populateStatusSelects();document.getElementById('modal').classList.remove('hidden');}
+
+// --- Modal ---
 let editIndex=null;
+function openAddModal(){editIndex=null;document.getElementById('modalTitle').innerText='Новый проект';document.getElementById('mName').value='';document.getElementById('mDate').value='';document.getElementById('mBudget').value='';populateStatusSelects();document.getElementById('modal').classList.remove('hidden');}
 function openEditModal(i){editIndex=i;const p=DB.projects[i];document.getElementById('modalTitle').innerText='Редактировать проект';document.getElementById('mName').value=p.name;document.getElementById('mStatus').value=p.status;document.getElementById('mDate').value=p.date||'';document.getElementById('mBudget').value=p.budget;populateStatusSelects();document.getElementById('modal').classList.remove('hidden');}
 function closeModal(){document.getElementById('modal').classList.add('hidden');}
 document.getElementById('saveModalBtn').onclick=function(){const name=document.getElementById('mName').value.trim();const status=document.getElementById('mStatus').value;const date=document.getElementById('mDate').value;const budget=document.getElementById('mBudget').value;if(!name){alert('Введите название');return;}const obj={name,status,date,budget};if(editIndex===null) DB.projects.push(obj); else DB.projects[editIndex]=obj;saveDB(DB);renderProjects();closeModal();}
@@ -237,4 +243,5 @@ function deleteProject(i){if(!confirm('Удалить проект?')) return;DB
 function populateFilter(){const f=document.getElementById('filterStatus');const cur=f.value;f.innerHTML='';f.appendChild(new Option('Все статусы','all'));DB.statuses.forEach(s=>f.appendChild(new Option(s,s)));if(cur) f.value=cur;}
 </script>
 </body>
+
 </html>
